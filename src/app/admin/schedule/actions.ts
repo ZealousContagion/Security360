@@ -40,3 +40,38 @@ export async function scheduleJob(jobId: string, date: Date) {
         return { success: false, error: error.message };
     }
 }
+
+export async function createJobReminder(jobId: string, message: string) {
+    const user = await getDbUser();
+
+    try {
+        const job = await prisma.job.findUnique({
+            where: { id: jobId },
+            include: { invoice: { include: { customer: true } } }
+        });
+
+        if (!job) throw new Error("Job not found");
+
+        await prisma.notification.create({
+            data: {
+                type: 'REMINDER',
+                title: `Reminder: ${job.invoice.customer.name}`,
+                message: message,
+                read: false
+            }
+        });
+
+        await logAction({
+            action: 'REMINDER_SET',
+            entityType: 'Job',
+            entityId: jobId,
+            performedBy: user?.email || 'Admin',
+            metadata: { message }
+        });
+
+        revalidatePath("/admin/schedule");
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
