@@ -18,6 +18,7 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
+import { PrintButton } from '@/components/PrintButton';
 
 export default async function JobSheetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -58,10 +59,7 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Authorized Field Production Document</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="outline" className="text-[10px] uppercase tracking-widest font-black h-10 px-6" onClick={() => window.print()}>
-                        <Printer className="w-4 h-4 mr-2" />
-                        Print Sheet
-                    </Button>
+                    <PrintButton />
                 </div>
             </div>
 
