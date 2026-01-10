@@ -37,14 +37,27 @@ export function estimateQuote(
 
     // Material estimation based on BOM
     const materials: MaterialEstimation[] = bom.map(item => {
-        const rawQty = item.quantityPerMeter * length;
-        const qtyWithWastage = Math.ceil(rawQty * Number(item.wastageFactor || 1.1));
+        const unit = item.catalogItem.unit.toLowerCase();
+        const rawQty = Number(item.quantityPerMeter) * length;
+        const wastage = Number(item.wastageFactor || 1.1);
+        
+        let finalQty = rawQty * wastage;
+
+        // Intelligent Rounding Logic
+        // Whole items must be rounded up to nearest integer
+        const wholeUnits = ['each', 'bag', 'post', 'roll', 'item', 'unit'];
+        if (wholeUnits.some(u => unit.includes(u))) {
+            finalQty = Math.ceil(finalQty);
+        } else {
+            // Cut-to-size items (like meters) get 2 decimal precision
+            finalQty = Math.round(finalQty * 100) / 100;
+        }
         
         return {
             name: item.catalogItem.name,
-            quantity: qtyWithWastage,
+            quantity: finalQty,
             unit: item.catalogItem.unit,
-            estimatedCost: qtyWithWastage * Number(item.catalogItem.price)
+            estimatedCost: finalQty * Number(item.catalogItem.price)
         };
     });
 

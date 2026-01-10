@@ -74,11 +74,24 @@ export async function generateQuotePDF(
     doc.setFont("helvetica", "bold");
     doc.text("ESTIMATED BILL OF MATERIALS", 20, finalY);
 
-    const bomBody = estimation.materials.map(m => [
-        m.name,
-        `${m.quantity} ${m.unit}`,
-        `£${m.estimatedCost.toFixed(2)}`
-    ]);
+    const bomBody = estimation.materials.map(m => {
+        const unit = m.unit.toLowerCase();
+        let displayQty = m.quantity;
+        
+        // Ensure rounding logic is reflected in PDF text
+        const wholeUnits = ['each', 'bag', 'post', 'roll', 'item', 'unit'];
+        if (wholeUnits.some(u => unit.includes(u))) {
+            displayQty = Math.ceil(displayQty);
+        } else {
+            displayQty = Math.round(displayQty * 100) / 100;
+        }
+
+        return [
+            m.name,
+            `${displayQty} ${m.unit}`,
+            `£${m.estimatedCost.toFixed(2)}`
+        ];
+    });
 
     autoTable(doc, {
         startY: finalY + 5,
@@ -195,11 +208,22 @@ export async function generateJobSheetPDF(
     doc.text("LOADING LIST (BILL OF MATERIALS)", 20, finalY);
 
     const bomBody = materials.map((m, idx) => {
-        const qty = Math.ceil(Number(m.quantityPerMeter) * Number(specs.length) * Number(m.wastageFactor));
+        const unit = m.catalogItem.unit.toLowerCase();
+        const rawQty = Number(m.quantityPerMeter) * Number(specs.length);
+        const wastage = Number(m.wastageFactor || 1.1);
+        let finalQty = rawQty * wastage;
+
+        const wholeUnits = ['each', 'bag', 'post', 'roll', 'item', 'unit'];
+        if (wholeUnits.some(u => unit.includes(u))) {
+            finalQty = Math.ceil(finalQty);
+        } else {
+            finalQty = Math.round(finalQty * 100) / 100;
+        }
+
         return [
             idx + 1,
             m.catalogItem.name,
-            `${qty} ${m.catalogItem.unit}`
+            `${finalQty} ${m.catalogItem.unit}`
         ];
     });
 

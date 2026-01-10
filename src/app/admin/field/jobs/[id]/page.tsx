@@ -197,7 +197,19 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                         </div>
                         <div className="grid grid-cols-1 gap-2">
                             {quote?.fencingService.BillOfMaterials.map((item: any, idx: number) => {
-                                const qty = Math.ceil(Number(item.quantityPerMeter) * Number(quote.lengthMeters) * Number(item.wastageFactor));
+                                const unit = item.catalogItem.unit.toLowerCase();
+                                const rawQty = Number(item.quantityPerMeter) * Number(quote.lengthMeters);
+                                const wastage = Number(item.wastageFactor || 1.1);
+                                let finalQty = rawQty * wastage;
+
+                                // Intelligent Rounding Logic
+                                const wholeUnits = ['each', 'bag', 'post', 'roll', 'item', 'unit'];
+                                if (wholeUnits.some(u => unit.includes(u))) {
+                                    finalQty = Math.ceil(finalQty);
+                                } else {
+                                    finalQty = Math.round(finalQty * 100) / 100;
+                                }
+
                                 return (
                                     <div key={idx} className="flex justify-between items-center p-4 bg-accent/10 rounded border border-black/5">
                                         <div className="flex items-center gap-4">
@@ -207,7 +219,7 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                                             <p className="text-xs font-black uppercase tracking-tight">{item.catalogItem.name}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-lg font-black tracking-tighter">{qty} <span className="text-[10px] uppercase text-muted-foreground ml-1">{item.catalogItem.unit}</span></p>
+                                            <p className="text-lg font-black tracking-tighter">{finalQty} <span className="text-[10px] uppercase text-muted-foreground ml-1">{item.catalogItem.unit}</span></p>
                                         </div>
                                     </div>
                                 );

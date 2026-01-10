@@ -147,12 +147,24 @@ export default async function FieldDashboard() {
                                     </p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {job.invoice.quote?.fencingService?.BillOfMaterials.map((item: any, idx: number) => {
-                                            const qty = Math.ceil(Number(item.quantityPerMeter) * Number(job.invoice.quote?.lengthMeters) * Number(item.wastageFactor));
+                                            const unit = item.catalogItem.unit.toLowerCase();
+                                            const rawQty = Number(item.quantityPerMeter) * Number(job.invoice.quote?.lengthMeters);
+                                            const wastage = Number(item.wastageFactor || 1.1);
+                                            let finalQty = rawQty * wastage;
+
+                                            // Intelligent Rounding Logic
+                                            const wholeUnits = ['each', 'bag', 'post', 'roll', 'item', 'unit'];
+                                            if (wholeUnits.some(u => unit.includes(u))) {
+                                                finalQty = Math.ceil(finalQty);
+                                            } else {
+                                                finalQty = Math.round(finalQty * 100) / 100;
+                                            }
+
                                             return (
                                                 <div key={idx} className="flex justify-between items-center bg-white p-2 px-3 rounded border border-black/5 shadow-sm">
                                                     <span className="text-[10px] font-bold uppercase tracking-tight truncate mr-2">{item.catalogItem.name}</span>
                                                     <Badge variant="outline" className="text-[9px] font-black border-primary/20 text-primary bg-primary/5 shrink-0">
-                                                        {qty} {item.catalogItem.unit}
+                                                        {finalQty} {item.catalogItem.unit}
                                                     </Badge>
                                                 </div>
                                             );
