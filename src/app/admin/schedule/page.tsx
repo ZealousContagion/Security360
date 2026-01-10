@@ -22,23 +22,25 @@ export default async function SchedulePage() {
         }
     });
 
-    // Serialize Decimals for Client Components
+    // Serialize only necessary fields for Client Components
     const serializedJobs = allJobs.map(job => ({
-        ...job,
+        id: job.id,
+        status: job.status,
+        scheduledDate: job.scheduledDate,
         invoice: {
-            ...job.invoice,
-            total: Number(job.invoice.total),
-            subtotal: Number(job.invoice.subtotal),
-            vat: Number(job.invoice.vat),
+            customer: {
+                name: job.invoice.customer.name,
+                address: job.invoice.customer.address,
+            },
             quote: job.invoice.quote ? {
-                ...job.invoice.quote,
-                total: Number(job.invoice.quote.total),
-                subtotal: Number(job.invoice.quote.subtotal),
-                vat: Number(job.invoice.quote.vat),
-                lengthMeters: Number(job.invoice.quote.lengthMeters),
-                heightMeters: Number(job.invoice.quote.heightMeters),
+                fencingService: {
+                    name: job.invoice.quote.fencingService.name,
+                }
             } : null
-        }
+        },
+        assignedTo: job.assignedTo ? {
+            name: job.assignedTo.name
+        } : null
     }));
 
     const unscheduledJobs = serializedJobs.filter(j => !j.scheduledDate);

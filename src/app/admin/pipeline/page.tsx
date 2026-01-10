@@ -14,14 +14,18 @@ export default async function PipelinePage() {
         orderBy: { createdAt: 'desc' }
     });
 
-    // Serialize Decimals for Client Components
+    // Serialize only necessary fields for Client Components to avoid Decimal/Date issues
     const serializedQuotes = quotes.map(q => ({
-        ...q,
-        lengthMeters: Number(q.lengthMeters),
-        heightMeters: Number(q.heightMeters),
-        subtotal: Number(q.subtotal),
-        vat: Number(q.vat),
+        id: q.id,
+        pipelineStage: q.pipelineStage,
         total: Number(q.total),
+        customer: {
+            name: q.customer.name,
+            address: q.customer.address,
+        },
+        fencingService: {
+            name: q.fencingService.name,
+        }
     }));
 
     const totalValue = serializedQuotes
