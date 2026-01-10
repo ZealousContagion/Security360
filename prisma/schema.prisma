@@ -85,6 +85,7 @@ model FenceQuote {
   vat              Decimal        @db.Decimal(10, 2)
   total            Decimal        @db.Decimal(10, 2)
   status           String         @default("DRAFT")
+  pipelineStage    String         @default("LEAD") // LEAD, SURVEY, QUOTED, WON, LOST
   createdAt        DateTime       @default(now())
   customer         Customer       @relation(fields: [customerId], references: [id])
   fencingService   FencingService @relation(fields: [fencingServiceId], references: [id])
@@ -92,6 +93,7 @@ model FenceQuote {
 
   @@index([customerId])
   @@index([status])
+  @@index([pipelineStage])
   @@index([createdAt])
 }
 

@@ -19,6 +19,7 @@ export default async function AdminLayout({
                 <nav className="flex-1 space-y-1 overflow-y-auto pr-2 custom-scrollbar">
                     <div className="pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-2">Core</div>
                     <Link href="/admin/dashboard" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Dashboard</Button></Link>
+                    <Link href="/admin/pipeline" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8 text-primary">Sales Pipeline</Button></Link>
                     <Link href="/admin/schedule" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Schedule</Button></Link>
                     <Link href="/admin/quotes" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Quotes</Button></Link>
                     <Link href="/admin/invoices" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Invoices</Button></Link>
