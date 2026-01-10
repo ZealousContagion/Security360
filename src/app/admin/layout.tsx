@@ -15,7 +15,9 @@ export default async function AdminLayout({
     return (
         <div className="flex h-screen bg-background">
             <aside className="w-64 border-r bg-white p-6 flex flex-col shrink-0">
-                <div className="font-bold text-lg tracking-tight mb-10 px-2 uppercase text-primary">Security 360</div>
+                <div className="mb-10 px-2">
+                    <img src="/logo.svg" alt="Security 360" className="h-12 w-auto" />
+                </div>
                 <nav className="flex-1 space-y-1 overflow-y-auto pr-2 custom-scrollbar">
                     <div className="pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-2">Core</div>
                     <Link href="/admin/dashboard" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Dashboard</Button></Link>

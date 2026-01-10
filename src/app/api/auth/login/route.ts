@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
             where: { email },
         });
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
             await logAction({
                 action: 'LOGIN_FAILED',
                 entityType: 'User',

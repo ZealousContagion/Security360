@@ -17,15 +17,15 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         
-        // Validate with Zod
-        const validation = QuoteSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json({
-                error: 'Validation failed',
-                details: validation.error.flatten().fieldErrors
-            }, { status: 400 });
-        }
-
+                // Validate with Zod
+                const validation = QuoteSchema.safeParse(body);
+                if (!validation.success) {
+                    console.error('[Quote API] Validation failed:', validation.error.format());
+                    return NextResponse.json({ 
+                        error: 'Validation failed', 
+                        details: validation.error.flatten().fieldErrors 
+                    }, { status: 400 });
+                }
         const { customerId, fencingServiceId, lengthMeters, heightMeters, terrain, addOnIds } = validation.data;
 
         // 1. Fetch authoritative data

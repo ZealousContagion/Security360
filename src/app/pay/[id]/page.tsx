@@ -38,9 +38,10 @@ export default async function PublicPaymentPage({ params }: { params: Promise<{ 
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Branding Header */}
                 <div className="flex justify-between items-center">
-                    <div>
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Security 360</h2>
-                        <h1 className="text-2xl font-black uppercase tracking-tighter">Secure Payment Portal</h1>
+                    <div className="flex items-center gap-4">
+                        <img src="/logo.svg" alt="Security 360" className="h-10 w-auto" />
+                        <div className="h-8 w-[1px] bg-border hidden sm:block"></div>
+                        <h1 className="text-2xl font-black uppercase tracking-tighter hidden sm:block">Secure Payment Portal</h1>
                     </div>
                     <Badge variant="outline" className="border-black uppercase text-[10px] tracking-widest px-4 py-1">
                         Invoice: {invoice.invoiceNumber}
@@ -58,7 +59,7 @@ export default async function PublicPaymentPage({ params }: { params: Promise<{ 
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-lg font-black uppercase tracking-tight">{invoice.quote?.fencingService?.name}</p>
-                                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Project: {invoice.quote?.lengthMeters}m Perimeter Fence</p>
+                                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Project: {invoice.quote?.lengthMeters?.toString()}m Perimeter Fence</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Total Amount</p>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ShoppingCart, Plus, Truck, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { POActions } from './POActions';
 
 export default async function PurchaseOrdersPage() {
     const pos = await prisma.purchaseOrder.findMany({
@@ -27,10 +28,12 @@ export default async function PurchaseOrdersPage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase text-black">Purchase Orders</h1>
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Inventory replenishment and supplier management</p>
                 </div>
-                <Button className="text-[10px] uppercase tracking-[0.2em] font-black h-12 px-6">
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Purchase Order
-                </Button>
+                <Link href="/admin/purchase-orders/new">
+                    <Button className="text-[10px] uppercase tracking-[0.2em] font-black h-12 px-6">
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Purchase Order
+                    </Button>
+                </Link>
             </div>
 
             {/* Low Stock HUD */}
@@ -100,9 +103,7 @@ export default async function PurchaseOrdersPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
-                                                <Truck className="w-4 h-4" />
-                                            </Button>
+                                            <POActions poId={po.id} status={po.status} />
                                         </TableCell>
                                     </TableRow>
                                 ))}

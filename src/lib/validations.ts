@@ -5,9 +5,7 @@ export const QuoteSchema = z.object({
     fencingServiceId: z.string().uuid({ message: "Invalid Service ID" }),
     lengthMeters: z.number().positive({ message: "Length must be greater than 0" }),
     heightMeters: z.number().positive({ message: "Height must be greater than 0" }),
-    terrain: z.enum(['FLAT', 'SLOPED', 'ROCKY'], { 
-        errorMap: () => ({ message: "Terrain must be FLAT, SLOPED, or ROCKY" }) 
-    }),
+    terrain: z.enum(['FLAT', 'SLOPED', 'ROCKY']),
     addOnIds: z.array(z.string().uuid()).optional().default([]),
 });
 
@@ -17,4 +15,13 @@ export const CatalogItemSchema = z.object({
     price: z.number().nonnegative("Price cannot be negative"),
     unit: z.string().min(1, "Unit is required"),
     category: z.string().min(1, "Category is required"),
+});
+
+export const PurchaseOrderSchema = z.object({
+    supplierId: z.string().uuid("Invalid Supplier ID"),
+    items: z.array(z.object({
+        catalogItemId: z.string().uuid("Invalid Item ID"),
+        quantity: z.number().positive("Quantity must be positive"),
+        unitPrice: z.number().nonnegative("Unit price cannot be negative"),
+    })).min(1, "At least one item is required"),
 });

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { isManager } from '@/lib/rbac';
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { Activity, DollarSign, FileText, CheckCircle, TrendingUp, Clock } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import { RevenueByServiceChart } from './RevenueByServiceChart';

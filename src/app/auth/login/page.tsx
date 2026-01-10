@@ -35,10 +35,13 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50">
+            <div className="mb-8">
+                <img src="/logo.svg" alt="Security 360" className="h-20 w-auto" />
+            </div>
             <Card className="w-[400px]">
                 <CardHeader>
-                    <CardTitle>Login</CardTitle>
+                    <CardTitle className="text-center uppercase tracking-widest text-sm font-bold">Access Portal</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">

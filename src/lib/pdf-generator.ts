@@ -10,7 +10,7 @@ export async function generateQuotePDF(
     signatureData?: string | null
 ) {
     const doc: any = new jsPDF();
-    const gold = [255, 183, 0];
+    const gold = [239, 159, 70];
     const black = [0, 0, 0];
 
     // -- Header --

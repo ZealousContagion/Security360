@@ -20,6 +20,7 @@ export default function NewQuotePage() {
     const router = useRouter();
     const [services, setServices] = useState<any[]>([]);
     const [addons, setAddons] = useState<any[]>([]);
+    const [customers, setCustomers] = useState<any[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -36,6 +37,7 @@ export default function NewQuotePage() {
     useEffect(() => {
         fetch('/api/fencing-services').then(r => r.json()).then(setServices);
         fetch('/api/fencing-addons').then(r => r.json()).then(setAddons);
+        fetch('/api/customers').then(r => r.json()).then(setCustomers);
     }, []);
 
     const selectedService = useMemo(() => 
@@ -118,11 +120,24 @@ export default function NewQuotePage() {
                         </CardHeader>
                         <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Select Customer</label>
+                                <select
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none uppercase tracking-tight font-bold"
+                                    value={formData.customerId}
+                                    onChange={e => setFormData({ ...formData, customerId: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Choose Customer...</option>
+                                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Select Service</label>
                                 <select
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none uppercase tracking-tight font-bold"
                                     value={formData.fencingServiceId}
                                     onChange={e => setFormData({ ...formData, fencingServiceId: e.target.value })}
+                                    required
                                 >
                                     <option value="">Choose Service...</option>
                                     {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
