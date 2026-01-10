@@ -7,8 +7,16 @@ import { CheckCircle2, Download, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { PaymentButton } from '@/components/PaymentButton';
 
-export default async function PublicPaymentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PublicPaymentPage({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ success?: string, canceled?: string }>
+}) {
     const { id } = await params;
+    const { success, canceled } = await searchParams;
+
     const invoice = await prisma.invoice.findUnique({
         where: { id },
         include: {
@@ -36,6 +44,19 @@ export default async function PublicPaymentPage({ params }: { params: Promise<{ 
     return (
         <div className="min-h-screen bg-accent/20 p-6 md:p-12">
             <div className="max-w-4xl mx-auto space-y-8">
+                {success && (
+                    <div className="bg-green-600 text-white p-4 rounded-lg flex items-center justify-center font-black uppercase tracking-widest text-[10px] animate-in slide-in-from-top duration-500">
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Payment Successful! Your project has been scheduled.
+                    </div>
+                )}
+
+                {canceled && (
+                    <div className="bg-amber-500 text-white p-4 rounded-lg flex items-center justify-center font-black uppercase tracking-widest text-[10px] animate-in slide-in-from-top duration-500">
+                        Payment was canceled. No charges were made.
+                    </div>
+                )}
+
                 {/* Branding Header */}
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
