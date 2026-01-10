@@ -54,7 +54,7 @@ export async function updatePurchaseOrderStatus(id: string, status: string) {
     const po = await prisma.purchaseOrder.update({
         where: { id },
         data: { status },
-        include: { items: true }
+        include: { items: true, supplier: true }
     });
 
     // If status is RECEIVED, increment stock levels and update price intelligence
@@ -102,6 +102,23 @@ export async function updatePurchaseOrderStatus(id: string, status: string) {
                 }
             }
         }
+
+        // 4. Create an Expense record for the total PO amount
+        await prisma.expense.create({
+            data: {
+                amount: po.total,
+                category: 'Materials',
+                description: `Purchase Order Receipt: ${po.id.slice(0, 8).toUpperCase()} (${po.supplier.name})`,
+                date: new Date(),
+            }
+        });
+
+        await logAction({
+            action: 'PO_EXPENSE_LOGGED',
+            entityType: 'Expense',
+            performedBy: 'System',
+            metadata: { poId: id, amount: po.total.toString() }
+        });
     }
 
     await logAction({
