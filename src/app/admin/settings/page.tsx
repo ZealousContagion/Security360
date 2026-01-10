@@ -16,7 +16,7 @@ export default async function SettingsPage() {
 
     const [taxConfig, businessConfig] = await Promise.all([
         prisma.taxConfig.findFirst(),
-        prisma.businessConfig.findFirst()
+        (prisma as any).businessConfig?.findFirst() || Promise.resolve(null)
     ]);
 
     const adminUser = await isAdmin();

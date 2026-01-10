@@ -20,15 +20,18 @@ export async function updateBusinessConfig(formData: FormData) {
         terms: formData.get("terms") as string,
     };
 
-    const config = await prisma.businessConfig.findFirst();
+    const businessConfig = (prisma as any).businessConfig;
+    if (!businessConfig) throw new Error("System configuration model not yet initialized in database client.");
+
+    const config = await businessConfig.findFirst();
 
     if (config) {
-        await prisma.businessConfig.update({
+        await businessConfig.update({
             where: { id: config.id },
             data
         });
     } else {
-        await prisma.businessConfig.create({
+        await businessConfig.create({
             data
         });
     }
