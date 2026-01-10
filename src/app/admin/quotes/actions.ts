@@ -13,10 +13,14 @@ export async function sendQuoteToCustomer(quoteId: string) {
 
         if (!quote || !quote.customer) throw new Error("Quote or Customer not found");
 
+        if (!quote.customer.email) {
+            return { success: false, error: "Customer does not have an email address." };
+        }
+
         const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/${quote.customerId}`;
 
         const res = await sendQuoteEmail({
-            to: quote.customer.email || 'customer@example.com', // fallback for demo
+            to: quote.customer.email,
             customerName: quote.customer.name,
             quoteId: quote.id,
             amount: Number(quote.total).toFixed(2),

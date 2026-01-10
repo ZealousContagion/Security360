@@ -30,16 +30,28 @@ export function EmailQuoteButton({ quoteId }: EmailQuoteButtonProps) {
 
     return (
         <Button 
-            variant="ghost" 
-            size="icon" 
+            variant="outline" 
             onClick={handleSend}
             disabled={status === 'sending'}
-            className={`h-8 w-8 hover:bg-primary/10 hover:text-primary ${status === 'success' ? 'text-green-600' : ''}`}
+            className={`text-[10px] uppercase tracking-widest font-black h-10 px-6 ${status === 'success' ? 'text-green-600 border-green-600' : ''}`}
             title="Email to Customer"
         >
-            {status === 'sending' ? <Loader2 className="w-4 h-4 animate-spin" /> : 
-             status === 'success' ? <Check className="w-4 h-4" /> : 
-             <Mail className="w-4 h-4" />}
+            {status === 'sending' ? (
+                <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                </>
+            ) : status === 'success' ? (
+                <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Sent!
+                </>
+            ) : (
+                <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Quote
+                </>
+            )}
         </Button>
     );
 }
