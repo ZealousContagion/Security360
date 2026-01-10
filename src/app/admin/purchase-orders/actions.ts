@@ -57,17 +57,50 @@ export async function updatePurchaseOrderStatus(id: string, status: string) {
         include: { items: true }
     });
 
-    // If status is RECEIVED, increment stock levels
+    // If status is RECEIVED, increment stock levels and update price intelligence
     if (status === 'RECEIVED') {
         for (const item of po.items) {
-            await prisma.catalogItem.update({
-                where: { id: item.catalogItemId },
-                data: {
-                    stockLevel: {
-                        increment: item.quantity
-                    }
-                }
+            // 1. Fetch current catalog state
+            const catalogItem = await prisma.catalogItem.findUnique({
+                where: { id: item.catalogItemId }
             });
+
+            if (catalogItem) {
+                const oldPrice = Number(catalogItem.price);
+                const newPrice = Number(item.unitPrice);
+                const priceChanged = oldPrice !== newPrice;
+
+                // 2. Update stock and potentially price
+                await prisma.catalogItem.update({
+                    where: { id: item.catalogItemId },
+                    data: {
+                        stockLevel: {
+                            increment: item.quantity
+                        },
+                        // Automatically update to latest cost
+                        price: priceChanged ? item.unitPrice : undefined
+                    }
+                });
+
+                // 3. If price changed, notify and log
+                if (priceChanged) {
+                    await prisma.notification.create({
+                        data: {
+                            type: 'INFO',
+                            title: 'Price Update detected',
+                            message: `Catalog item "${catalogItem.name}" updated from £${oldPrice} to £${newPrice} based on PO receipt.`,
+                        }
+                    });
+
+                    await logAction({
+                        action: 'PRICE_AUTO_UPDATE',
+                        entityType: 'CatalogItem',
+                        entityId: catalogItem.id,
+                        performedBy: 'System (PO Receipt)',
+                        metadata: { oldPrice, newPrice, poId: id }
+                    });
+                }
+            }
         }
     }
 
