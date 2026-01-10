@@ -22,8 +22,27 @@ export default async function SchedulePage() {
         }
     });
 
-    const unscheduledJobs = allJobs.filter(j => !j.scheduledDate);
-    const scheduledJobs = allJobs.filter(j => j.scheduledDate) as any;
+    // Serialize Decimals for Client Components
+    const serializedJobs = allJobs.map(job => ({
+        ...job,
+        invoice: {
+            ...job.invoice,
+            total: Number(job.invoice.total),
+            subtotal: Number(job.invoice.subtotal),
+            vat: Number(job.invoice.vat),
+            quote: job.invoice.quote ? {
+                ...job.invoice.quote,
+                total: Number(job.invoice.quote.total),
+                subtotal: Number(job.invoice.quote.subtotal),
+                vat: Number(job.invoice.quote.vat),
+                lengthMeters: Number(job.invoice.quote.lengthMeters),
+                heightMeters: Number(job.invoice.quote.heightMeters),
+            } : null
+        }
+    }));
+
+    const unscheduledJobs = serializedJobs.filter(j => !j.scheduledDate);
+    const scheduledJobs = serializedJobs.filter(j => j.scheduledDate) as any;
 
     return (
         <div className="space-y-8">

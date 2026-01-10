@@ -14,9 +14,19 @@ export default async function PipelinePage() {
         orderBy: { createdAt: 'desc' }
     });
 
-    const totalValue = quotes
+    // Serialize Decimals for Client Components
+    const serializedQuotes = quotes.map(q => ({
+        ...q,
+        lengthMeters: Number(q.lengthMeters),
+        heightMeters: Number(q.heightMeters),
+        subtotal: Number(q.subtotal),
+        vat: Number(q.vat),
+        total: Number(q.total),
+    }));
+
+    const totalValue = serializedQuotes
         .filter(q => q.pipelineStage !== 'LOST')
-        .reduce((acc, q) => acc + Number(q.total), 0);
+        .reduce((acc, q) => acc + q.total, 0);
 
     return (
         <div className="space-y-8">
@@ -41,7 +51,7 @@ export default async function PipelinePage() {
                 </div>
             </div>
 
-            <KanbanBoard initialQuotes={quotes as any} />
+            <KanbanBoard initialQuotes={serializedQuotes as any} />
 
             {/* Senior Engineer Strategic Note */}
             <div className="bg-black text-white p-8 rounded-2xl flex items-start gap-6 shadow-2xl relative overflow-hidden">
