@@ -281,3 +281,19 @@ model TaxConfig {
 
   @@map("tax_configs")
 }
+
+model BusinessConfig {
+  id            String   @id @default(uuid())
+  companyName   String   @default("Security 360")
+  supportEmail  String?
+  supportPhone  String?
+  address       String?
+  bankName      String?
+  bankAccName   String?
+  bankAccNumber String?
+  bankBranch    String?
+  terms         String?  @db.Text
+  updatedAt     DateTime @updatedAt
+
+  @@map("business_configs")
+}
