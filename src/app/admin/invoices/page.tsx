@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { FileText, Link as LinkIcon, ExternalLink, Filter, BellRing } from 'lucide-react';
+import { FileText, Link as LinkIcon, ExternalLink, Filter, BellRing, Banknote } from 'lucide-react';
 import { OverdueRemindersButton } from '@/components/OverdueRemindersButton';
+import { CashPaymentButton } from './CashPaymentButton';
 
 export default async function InvoicesPage() {
     const invoices = await prisma.invoice.findMany({
@@ -68,6 +69,12 @@ export default async function InvoicesPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
+                                            <CashPaymentButton 
+                                                invoiceId={inv.id} 
+                                                totalAmount={Number(inv.total)} 
+                                                invoiceNumber={inv.invoiceNumber}
+                                                currentStatus={inv.status}
+                                            />
                                             <Link href={`/pay/${inv.id}`} target="_blank">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
                                                     <ExternalLink className="w-4 h-4" />
