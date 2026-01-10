@@ -19,7 +19,7 @@ export async function sendQuoteEmail({ to, customerName, quoteId, amount, portal
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Security 360 <quotes@security360.co.zw>',
+            from: process.env.FROM_EMAIL || 'Security 360 <onboarding@resend.dev>',
             to: [to],
             subject: `Quote #${quoteId.slice(0, 8).toUpperCase()} from Security 360`,
             html: `
