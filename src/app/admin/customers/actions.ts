@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { CustomerSchema } from "@/lib/validations";
 import { logAction } from "@/modules/audit/logger";
-import { getDbUser } from "@/lib/rbac";
+import { getDbUser, checkRole } from "@/lib/rbac";
 
 export async function createCustomer(formData: FormData) {
+    await checkRole(["ADMIN", "MANAGER"]);
     const user = await getDbUser();
 
     const rawData = {
@@ -39,6 +40,7 @@ export async function createCustomer(formData: FormData) {
 }
 
 export async function updateCustomer(id: string, formData: FormData) {
+    await checkRole(["ADMIN", "MANAGER"]);
     const user = await getDbUser();
 
     const rawData = {
@@ -68,4 +70,35 @@ export async function updateCustomer(id: string, formData: FormData) {
 
     revalidatePath("/admin/customers");
     redirect("/admin/customers");
+}
+
+export async function deleteCustomer(id: string) {
+    await checkRole(["ADMIN"]);
+    const user = await getDbUser();
+
+    // Check for dependencies (Quotes, Invoices)
+    const customer = await prisma.customer.findUnique({
+        where: { id },
+        include: { _count: { select: { Quotes: true, Invoices: true } } }
+    });
+
+    if (!customer) throw new Error("Customer not found");
+
+    if (customer._count.Quotes > 0 || customer._count.Invoices > 0) {
+        throw new Error("Cannot delete customer with existing quotes or invoices.");
+    }
+
+    await prisma.customer.delete({
+        where: { id }
+    });
+
+    await logAction({
+        action: 'DELETE_CUSTOMER',
+        entityType: 'Customer',
+        entityId: id,
+        performedBy: user?.email || 'System',
+        metadata: { name: customer.name }
+    });
+
+    revalidatePath("/admin/customers");
 }

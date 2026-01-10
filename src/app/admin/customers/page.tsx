@@ -4,8 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Users, ExternalLink, UserPlus, Phone, MapPin, Edit2 } from 'lucide-react';
 import Link from 'next/link';
+import { getCurrentUserRole } from '@/lib/rbac';
+import { DeleteCustomerButton } from './DeleteCustomerButton';
 
 export default async function CustomersPage() {
+    const role = await getCurrentUserRole();
+    const canManage = role === 'ADMIN' || role === 'MANAGER';
+    const canDelete = role === 'ADMIN';
+
     const customers = await prisma.customer.findMany({
         include: { 
             _count: { select: { Quotes: true, Invoices: true } } 
@@ -20,12 +26,14 @@ export default async function CustomersPage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase">Customer Directory</h1>
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Manage client relationships and portal access</p>
                 </div>
-                <Link href="/admin/customers/new">
-                    <Button className="text-[10px] uppercase tracking-[0.2em] font-bold h-10 px-6">
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        New Customer
-                    </Button>
-                </Link>
+                {canManage && (
+                    <Link href="/admin/customers/new">
+                        <Button className="text-[10px] uppercase tracking-[0.2em] font-bold h-10 px-6">
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            New Customer
+                        </Button>
+                    </Link>
+                )}
             </div>
 
             <Card>
@@ -83,11 +91,16 @@ export default async function CustomersPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Link href={`/admin/customers/${c.id}/edit`}>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" title="Edit Customer">
-                                                    <Edit2 className="w-4 h-4" />
-                                                </Button>
-                                            </Link>
+                                            {canDelete && (
+                                                <DeleteCustomerButton id={c.id} customerName={c.name} />
+                                            )}
+                                            {canManage && (
+                                                <Link href={`/admin/customers/${c.id}/edit`}>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" title="Edit Customer">
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </Button>
+                                                </Link>
+                                            )}
                                             <Link href={`/portal/${c.id}`} target="_blank">
                                                 <Button variant="ghost" className="text-[9px] uppercase tracking-[0.2em] font-black hover:bg-primary/10 hover:text-primary">
                                                     Open Portal

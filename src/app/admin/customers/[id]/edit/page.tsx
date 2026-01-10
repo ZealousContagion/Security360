@@ -5,8 +5,10 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { checkRole } from '@/lib/rbac';
 
 export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
+    await checkRole(["ADMIN", "MANAGER"]);
     const { id } = await params;
     const customer = await prisma.customer.findUnique({
         where: { id }

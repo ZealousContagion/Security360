@@ -3,8 +3,11 @@ import { CustomerForm } from '../CustomerForm';
 import { Button } from '@/components/ui/Button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { checkRole } from '@/lib/rbac';
 
-export default function NewCustomerPage() {
+export default async function NewCustomerPage() {
+    await checkRole(["ADMIN", "MANAGER"]);
+
     return (
         <div className="max-w-2xl mx-auto space-y-8">
             <div>
