@@ -1,136 +1,185 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import React, { Suspense } from 'react';
+import { prisma } from '@/lib/prisma';
+import { isManager } from '@/lib/rbac';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, DollarSign, FileText, CheckCircle, TrendingUp } from 'lucide-react';
+import { Activity, DollarSign, FileText, CheckCircle, TrendingUp, Clock } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/DashboardSkeleton';
+import { RevenueByServiceChart } from './RevenueByServiceChart';
+import { Decimal } from '@prisma/client/runtime/library';
 
-export default function DashboardPage() {
-    const [data, setData] = useState<any>(null);
+// --- Sub-components for Streaming ---
 
-    useEffect(() => {
-        fetch('/api/dashboard/summary')
-            .then(res => res.json())
-            .then(setData)
-            .catch(console.error);
-    }, []);
+async function DashboardStats() {
+    // 1. Total Revenue (Paid Invoices)
+    const paidInvoices = await prisma.invoice.findMany({
+        where: { status: 'PAID' },
+        select: { total: true }
+    });
+    const totalRevenue = paidInvoices.reduce((acc, curr) => acc.add(curr.total), new Decimal(0));
 
-    if (!data) return (
-        <div className="flex items-center justify-center h-[60vh]">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-bold animate-pulse">Initializing Data...</p>
-            </div>
+    // 2. Counts
+    const paidCount = await prisma.invoice.count({ where: { status: 'PAID' } });
+    const pendingCount = await prisma.invoice.count({ where: { status: 'PENDING' } });
+
+    // 3. Conversion Funnel
+    const totalQuotes = await prisma.fenceQuote.count();
+    const convertedQuotes = await prisma.invoice.count({
+        where: { quoteId: { not: null } }
+    });
+    const conversionRate = totalQuotes > 0 ? (convertedQuotes / totalQuotes) * 100 : 0;
+
+    return (
+        <div className="grid gap-6 md:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Total Revenue</CardTitle>
+                    <DollarSign className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-black">£{totalRevenue.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Lifetime processed</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Conversion Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-black">{Math.round(conversionRate)}%</div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">{convertedQuotes} of {totalQuotes} converted</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Paid Invoices</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-black">{paidCount}</div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Closed orders</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Pending</CardTitle>
+                    <Activity className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-black">{pendingCount}</div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">In progress</p>
+                </CardContent>
+            </Card>
         </div>
     );
+}
+
+async function RevenueCharts() {
+    const paidInvoicesWithService = await prisma.invoice.findMany({
+        where: { status: 'PAID', quoteId: { not: null } },
+        include: {
+            quote: {
+                include: { fencingService: true }
+            }
+        }
+    });
+
+    const revenueByServiceMap: Record<string, number> = {};
+    for (const inv of paidInvoicesWithService) {
+        if (inv.quote?.fencingService) {
+            const name = inv.quote.fencingService.name;
+            revenueByServiceMap[name] = (revenueByServiceMap[name] || 0) + inv.total.toNumber();
+        }
+    }
+
+    const chartData = Object.entries(revenueByServiceMap).map(([name, value]) => ({ name, value }));
+
+    return (
+        <Card className="col-span-4">
+            <CardHeader>
+                <CardTitle className="text-sm uppercase tracking-widest font-bold">Revenue by Service</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-4">
+                <RevenueByServiceChart data={chartData} />
+            </CardContent>
+        </Card>
+    );
+}
+
+async function RecentActivity() {
+    const recentInvoices = await prisma.invoice.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { customer: true }
+    });
+
+    return (
+        <Card className="col-span-3">
+            <CardHeader>
+                <CardTitle className="text-sm uppercase tracking-widest font-bold">Recent Invoices</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4 pt-2">
+                    {recentInvoices.length === 0 ? (
+                        <div className="text-center py-12">
+                            <FileText className="w-12 h-12 text-muted/30 mx-auto" />
+                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mt-4">No recent activity</p>
+                        </div>
+                    ) : (
+                        recentInvoices.map((inv) => (
+                            <div key={inv.id} className="flex items-center justify-between border-b border-dashed pb-3 last:border-0 last:pb-0">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-tight">{inv.customer.name}</p>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Clock className="w-2.5 h-2.5" />
+                                        <span className="text-[8px] uppercase font-bold">{new Date(inv.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black tracking-tighter">£{Number(inv.total).toFixed(2)}</p>
+                                    <Badge variant="outline" className="text-[7px] h-4 uppercase font-black tracking-widest border-black/5 mt-1">
+                                        {inv.status}
+                                    </Badge>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// --- Main Page Component ---
+
+export default async function DashboardPage() {
+    if (!await isManager()) {
+        redirect("/admin/quotes");
+    }
 
     return (
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-black tracking-tighter uppercase">Admin Dashboard</h1>
-                <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Operational Overview</p>
+                <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Real-Time Operational Overview</p>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid gap-6 md:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Total Revenue</CardTitle>
-                        <DollarSign className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-black">£{data.totalRevenue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Lifetime processed</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Conversion Rate</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-black">{data.conversionRate}%</div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">{data.convertedQuotes} of {data.totalQuotes} converted</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Paid Invoices</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-black">{data.paidCount}</div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Closed orders</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Pending</CardTitle>
-                        <Activity className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-black">{data.pendingCount}</div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">In progress</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Charts */}
-            <div className="grid gap-6 md:grid-cols-7">
-                <Card className="col-span-4">
-                    <CardHeader>
-                        <CardTitle className="text-sm uppercase tracking-widest font-bold">Revenue by Service</CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[350px] pt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.revenueByService}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fontSize: 10, fontWeight: 'bold' }} 
-                                    className="uppercase tracking-widest"
-                                />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fontSize: 10, fontWeight: 'bold' }}
-                                />
-                                <Tooltip 
-                                    cursor={{ fill: 'transparent' }}
-                                    contentStyle={{ 
-                                        borderRadius: '0px', 
-                                        border: '1px solid #e2e8f0',
-                                        boxShadow: 'none',
-                                        fontSize: '10px',
-                                        textTransform: 'uppercase',
-                                        fontWeight: 'bold',
-                                        letterSpacing: '0.1em'
-                                    }}
-                                />
-                                <Bar dataKey="value" fill="#FFB700" radius={[2, 2, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle className="text-sm uppercase tracking-widest font-bold">Recent Invoices</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4 pt-2">
-                            {/* Placeholder for real invoice feed if added to summary or separate fetch */}
-                            <div className="text-center py-12">
-                                <FileText className="w-12 h-12 text-muted/30 mx-auto" />
-                                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mt-4">Feed coming soon</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="space-y-8">
+                <Suspense fallback={<div className="h-32 w-full bg-accent/20 animate-pulse rounded-lg" />}>
+                    <DashboardStats />
+                </Suspense>
+                
+                <div className="grid gap-6 md:grid-cols-7">
+                    <Suspense fallback={<Card className="col-span-4 h-[400px] animate-pulse bg-accent/10" />}>
+                        <RevenueCharts />
+                    </Suspense>
+                    
+                    <Suspense fallback={<Card className="col-span-3 h-[400px] animate-pulse bg-accent/10" />}>
+                        <RecentActivity />
+                    </Suspense>
+                </div>
             </div>
         </div>
     );
 }
-
