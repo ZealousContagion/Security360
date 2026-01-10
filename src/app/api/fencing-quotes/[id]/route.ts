@@ -7,10 +7,11 @@ import { getTaxSettings } from '@/modules/billing/tax';
 import { QuoteSchema } from '@/lib/validations';
 import { Decimal } from '@prisma/client/runtime/library';
 import { logAction } from '@/modules/audit/logger';
+import { getDbUser, isManager } from '@/lib/rbac';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
 
@@ -33,8 +34,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
 
@@ -93,8 +94,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             action: 'UPDATE_QUOTE',
             entityType: 'FenceQuote',
             entityId: quote.id,
-            performedBy: session.email,
-            userId: session.userId,
+            performedBy: user.email,
+            userId: user.id,
         });
 
         return NextResponse.json(quote);
@@ -106,8 +107,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session || !['ADMIN', 'MANAGER'].includes(session.role)) {
+    const user = await getDbUser();
+    if (!user || !['ADMIN', 'MANAGER'].includes(user.role)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -120,8 +121,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             action: 'DELETE_QUOTE',
             entityType: 'FenceQuote',
             entityId: id,
-            performedBy: session.email,
-            userId: session.userId,
+            performedBy: user.email,
+            userId: user.id,
         });
 
         return NextResponse.json({ success: true });

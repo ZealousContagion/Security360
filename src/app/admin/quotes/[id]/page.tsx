@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { notFound } from 'next/navigation';
 import { QuoteActions } from './QuoteActions';
-import { FileText, User, Settings, Ruler, TrendingUp, Mail, ExternalLink, Edit2 } from 'lucide-react';
+import { FileText, User, Settings, Ruler, TrendingUp, Mail, ExternalLink, Edit2, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { EmailQuoteButton } from '@/components/EmailQuoteButton';
 
@@ -98,6 +98,26 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
                             </div>
                         </CardContent>
                     </Card>
+
+                    {quote.signatureData && (
+                        <Card>
+                            <CardHeader className="border-b bg-accent/30 py-4">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <PenLine className="w-3 h-3 text-primary" />
+                                    Digital Signature
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 flex items-center justify-between">
+                                <div>
+                                    <img src={quote.signatureData} alt="Signature" className="h-16 border rounded bg-white" />
+                                    <p className="text-[8px] text-muted-foreground uppercase font-bold mt-2">
+                                        Signed on {quote.signedAt?.toLocaleString()}
+                                    </p>
+                                </div>
+                                <Badge variant="success" className="uppercase text-[8px] tracking-widest">Legally Verified</Badge>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 <div className="space-y-8">

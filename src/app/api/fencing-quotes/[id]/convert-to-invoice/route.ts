@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/database';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser, isManager } from '@/lib/rbac';
 import { logAction } from '@/modules/audit/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
+    const user = await getDbUser();
     // Only Admin or Finance can convert to invoice
-    if (!session || !['ADMIN', 'FINANCE'].includes(session.role)) {
+    if (!user || !await isManager()) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         action: 'CONVERT_TO_INVOICE',
         entityType: 'Invoice',
         entityId: invoice.id,
-        performedBy: session.email,
-        userId: session.userId,
+        performedBy: user.email,
+        userId: user.id,
         metadata: { quoteId: quote.id }
     });
 

@@ -2,8 +2,12 @@
 
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/modules/audit/logger";
+import { isManager, getDbUser } from "@/lib/rbac";
 
 export async function sendOverdueReminders() {
+    if (!await isManager()) throw new Error("Unauthorized");
+    const user = await getDbUser();
+
     try {
         const overdue = await prisma.invoice.findMany({
             where: {
@@ -23,7 +27,7 @@ export async function sendOverdueReminders() {
         await logAction({
             action: 'BULK_OVERDUE_REMINDERS',
             entityType: 'Invoice',
-            performedBy: 'System/Admin',
+            performedBy: user?.email || 'Admin',
             metadata: { count: overdue.length }
         });
 

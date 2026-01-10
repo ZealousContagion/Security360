@@ -3,11 +3,11 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
-import { getSession } from "@/modules/auth/session";
+import { getDbUser } from "@/lib/rbac";
 import { Prisma } from "@prisma/client";
 
 export async function completeJob(jobId: string) {
-    const session = await getSession();
+    const user = await getDbUser();
 
     try {
         // 1. Fetch deep Job data
@@ -79,7 +79,7 @@ export async function completeJob(jobId: string) {
             action: 'JOB_COMPLETED',
             entityType: 'Job',
             entityId: jobId,
-            performedBy: session?.email || 'Field Tech'
+            performedBy: user?.email || 'Field Tech'
         });
 
         revalidatePath("/admin/field");

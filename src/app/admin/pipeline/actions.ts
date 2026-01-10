@@ -3,10 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
-import { getSession } from "@/modules/auth/session";
+import { getDbUser } from "@/lib/rbac";
 
 export async function updateQuoteStage(quoteId: string, newStage: string) {
-    const session = await getSession();
+    const user = await getDbUser();
 
     try {
         const quote = await prisma.fenceQuote.update({
@@ -19,7 +19,7 @@ export async function updateQuoteStage(quoteId: string, newStage: string) {
             action: 'QUOTE_STAGE_CHANGE',
             entityType: 'FenceQuote',
             entityId: quoteId,
-            performedBy: session?.email || 'Admin',
+            performedBy: user?.email || 'Admin',
             metadata: { 
                 newStage,
                 customer: quote.customer.name

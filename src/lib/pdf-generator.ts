@@ -6,7 +6,8 @@ export async function generateQuotePDF(
     quoteId: string,
     customer: any,
     service: any,
-    estimation: QuoteEstimation
+    estimation: QuoteEstimation,
+    signatureData?: string | null
 ) {
     const doc: any = new jsPDF();
     const gold = [255, 183, 0];
@@ -91,8 +92,19 @@ export async function generateQuotePDF(
         }
     });
 
-    // -- Summary Box --
+    // -- Summary Box & Signature --
     const summaryY = (doc as any).lastAutoTable.finalY + 20;
+    
+    if (signatureData) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("CUSTOMER SIGNATURE:", 20, summaryY + 5);
+        doc.addImage(signatureData, 'PNG', 20, summaryY + 10, 50, 20);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Digitally signed on ${new Date().toLocaleString()}`, 20, summaryY + 35);
+    }
+
     doc.setFillColor(255, 183, 0, 0.1);
     doc.rect(130, summaryY, 60, 30, 'F');
     

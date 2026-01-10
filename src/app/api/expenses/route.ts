@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { isManager } from '@/lib/rbac';
+import { getDbUser, isManager } from '@/lib/rbac';
 
 export async function GET(req: NextRequest) {
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const expenses = await prisma.expense.findMany({
         orderBy: { date: 'desc' }
     });

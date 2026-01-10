@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/database';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser } from '@/lib/rbac';
 import { calculateFencePrice } from '@/modules/billing/pricing';
 import { logAction } from '@/modules/audit/logger';
 import { Decimal } from '@prisma/client/runtime/library';
@@ -9,8 +9,8 @@ import { getTaxSettings } from '@/modules/billing/tax';
 import { QuoteSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
-    const session = await getSession();
-    if (!session) {
+    const user = await getDbUser();
+    if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,9 +20,9 @@ export async function POST(req: NextRequest) {
         // Validate with Zod
         const validation = QuoteSchema.safeParse(body);
         if (!validation.success) {
-            return NextResponse.json({ 
-                error: 'Validation failed', 
-                details: validation.error.flatten().fieldErrors 
+            return NextResponse.json({
+                error: 'Validation failed',
+                details: validation.error.flatten().fieldErrors
             }, { status: 400 });
         }
 
@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
             action: 'CREATE_QUOTE',
             entityType: 'FenceQuote',
             entityId: quote.id,
-            performedBy: session.email,
-            userId: session.userId,
+            performedBy: user.email,
+            userId: user.id,
         });
 
         return NextResponse.json(quote);
@@ -81,3 +81,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: e.message || 'Error creating quote' }, { status: 400 });
     }
 }
+

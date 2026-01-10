@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/database';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser } from '@/lib/rbac';
 
 export async function GET() {
     const services = await prisma.fencingService.findMany({
@@ -10,8 +10,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getSession();
-    if (!session || session.role !== 'ADMIN') {
+    const user = await getDbUser();
+    if (!user || user.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

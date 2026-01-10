@@ -3,10 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
-import { getSession } from "@/modules/auth/session";
+import { getDbUser } from "@/lib/rbac";
 
 export async function scheduleJob(jobId: string, date: Date) {
-    const session = await getSession();
+    const user = await getDbUser();
 
     try {
         const job = await prisma.job.update({
@@ -24,7 +24,7 @@ export async function scheduleJob(jobId: string, date: Date) {
             action: 'JOB_SCHEDULED',
             entityType: 'Job',
             entityId: jobId,
-            performedBy: session?.email || 'Admin',
+            performedBy: user?.email || 'Admin',
             metadata: { 
                 date: date.toISOString(),
                 customer: job.invoice.customer.name

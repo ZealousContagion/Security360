@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/database';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser } from '@/lib/rbac';
 import { logAction } from '@/modules/audit/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    // Role check: Sales can approve? Let's say yes for MVP, or maybe Admin/Finance. 
-    // Prompt says roles: ADMIN|FINANCE|SALES. Let's assume SALES can create/approve drafts.
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
 
@@ -51,8 +49,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         action: 'APPROVE_QUOTE_AND_CREATE_JOB',
         entityType: 'FenceQuote',
         entityId: updatedQuote.id,
-        performedBy: session.email,
-        userId: session.userId,
+        performedBy: user.email,
+        userId: user.id,
         metadata: { invoiceNumber }
     });
 

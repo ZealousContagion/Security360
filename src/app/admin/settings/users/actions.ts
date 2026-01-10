@@ -2,19 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { isAdmin, Role } from "@/lib/rbac";
+import { isAdmin, Role, getDbUser } from "@/lib/rbac";
 import { logAction } from "@/modules/audit/logger";
-import { getSession } from "@/modules/auth/session";
 
 export async function updateUserRole(userId: string, newRole: Role) {
     if (!await isAdmin()) {
         throw new Error("Forbidden: Admin access required");
     }
 
-    const session = await getSession();
+    const user = await getDbUser();
 
     try {
-        const user = await prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: { role: newRole }
         });
@@ -23,7 +22,7 @@ export async function updateUserRole(userId: string, newRole: Role) {
             action: 'USER_ROLE_CHANGE',
             entityType: 'User',
             entityId: userId,
-            performedBy: session?.email || 'Admin',
+            performedBy: user?.email || 'Admin',
             metadata: { newRole }
         });
 
@@ -40,7 +39,7 @@ export async function toggleUserStatus(userId: string, currentStatus: boolean) {
         throw new Error("Forbidden: Admin access required");
     }
 
-    const session = await getSession();
+    const user = await getDbUser();
 
     try {
         await prisma.user.update({
@@ -52,7 +51,7 @@ export async function toggleUserStatus(userId: string, currentStatus: boolean) {
             action: 'USER_STATUS_TOGGLE',
             entityType: 'User',
             entityId: userId,
-            performedBy: session?.email || 'Admin',
+            performedBy: user?.email || 'Admin',
             metadata: { newStatus: !currentStatus }
         });
 

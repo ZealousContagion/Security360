@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser, isManager } from '@/lib/rbac';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
     const expense = await prisma.expense.findUnique({
@@ -17,8 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session || !['ADMIN', 'FINANCE'].includes(session.role)) {
+    if (!await isManager()) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -36,8 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await getSession();
-    if (!session || !['ADMIN', 'FINANCE'].includes(session.role)) {
+    if (!await isManager()) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

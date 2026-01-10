@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
 
-export async function customerApproveQuote(quoteId: string) {
+export async function customerApproveQuote(quoteId: string, signatureData: string) {
     try {
         const quote = await prisma.fenceQuote.findUnique({
             where: { id: quoteId },
@@ -18,11 +18,15 @@ export async function customerApproveQuote(quoteId: string) {
         const count = await prisma.invoice.count();
         const invoiceNumber = `INV-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
 
-        // 2. Transaction: Approve Quote + Create Invoice
+        // 2. Transaction: Approve Quote + Create Invoice + Save Signature
         const [updatedQuote, invoice] = await prisma.$transaction([
             prisma.fenceQuote.update({
                 where: { id: quoteId },
-                data: { status: 'APPROVED' }
+                data: { 
+                    status: 'APPROVED',
+                    signatureData,
+                    signedAt: new Date()
+                }
             }),
             prisma.invoice.create({
                 data: {

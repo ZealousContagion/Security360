@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/modules/auth/session';
+import { getDbUser, isManager } from '@/lib/rbac';
 
 export async function GET(req: NextRequest) {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getDbUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const members = await prisma.teamMember.findMany({
         orderBy: { name: 'asc' }
@@ -13,8 +13,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getSession();
-    if (!session || session.role !== 'ADMIN') {
+    if (!await isManager()) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

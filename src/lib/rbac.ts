@@ -3,46 +3,47 @@ import { prisma } from "@/lib/prisma";
 
 export type Role = "ADMIN" | "MANAGER" | "USER";
 
-export async function getCurrentUserRole(): Promise<Role> {
-    const user = await currentUser();
-    if (!user) return "USER";
+export async function getDbUser() {
+    const { userId } = await auth();
+    if (!userId) return null;
 
-    // 1. Check if user exists in our DB
     let dbUser = await prisma.user.findUnique({
-        where: { clerkId: user.id }
+        where: { clerkId: userId }
     });
 
-    // 2. If not, check by email (syncing Clerk to Prisma)
-    if (!dbUser && user.emailAddresses[0]?.emailAddress) {
+    if (!dbUser) {
+        const user = await currentUser();
+        if (!user) return null;
+
+        // Sync logic
         dbUser = await prisma.user.findUnique({
             where: { email: user.emailAddresses[0].emailAddress }
         });
 
         if (dbUser) {
-            // Update with clerkId for future lookups
-            await prisma.user.update({
+            dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
                 data: { clerkId: user.id }
+            });
+        } else {
+            const userCount = await prisma.user.count();
+            dbUser = await prisma.user.create({
+                data: {
+                    clerkId: user.id,
+                    email: user.emailAddresses[0].emailAddress,
+                    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'System User',
+                    role: userCount === 0 ? "ADMIN" : "USER"
+                }
             });
         }
     }
 
-    // 3. Fallback: Create user if they don't exist
-    if (!dbUser) {
-        // Check if this is the first user ever
-        const userCount = await prisma.user.count();
-        const initialRole = userCount === 0 ? "ADMIN" : "USER";
+    return dbUser;
+}
 
-        dbUser = await prisma.user.create({
-            data: {
-                clerkId: user.id,
-                email: user.emailAddresses[0].emailAddress,
-                name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'System User',
-                role: initialRole
-            }
-        });
-    }
-
+export async function getCurrentUserRole(): Promise<Role> {
+    const dbUser = await getDbUser();
+    if (!dbUser) return "USER"; // Default or should we throw? Layouts use this for UI hiding.
     return dbUser.role as Role;
 }
 
