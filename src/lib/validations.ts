@@ -39,3 +39,10 @@ export const TeamMemberSchema = z.object({
     role: z.string().min(2, "Role is required"),
     status: z.enum(['ACTIVE', 'INACTIVE', 'AWAY']).default('ACTIVE'),
 });
+
+export const ExpenseSchema = z.object({
+    category: z.string().min(1, "Category is required"),
+    amount: z.number().positive("Amount must be positive"),
+    description: z.string().min(3, "Description is too short"),
+    date: z.date().default(() => new Date()),
+});

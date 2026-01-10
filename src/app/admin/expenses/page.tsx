@@ -1,10 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import { Receipt, Plus, PieChart } from "lucide-react";
+import { Receipt, Plus, PieChart, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUserRole, isManager } from "@/lib/rbac";
+import { LogExpenseButton } from "./LogExpenseButton";
+import { DeleteExpenseButton } from "./DeleteExpenseButton";
 
 export default async function ExpensesPage() {
+    const role = await getCurrentUserRole();
+    const canLog = role === 'ADMIN' || role === 'MANAGER';
+    const isAdmin = role === 'ADMIN';
+
     const expenses = await prisma.expense.findMany({
         orderBy: { date: 'desc' }
     });
@@ -29,10 +36,7 @@ export default async function ExpensesPage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase">Expenses</h1>
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Track business costs and materials</p>
                 </div>
-                <Button className="text-[10px] uppercase tracking-[0.2em] font-bold h-10 px-6">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Log Expense
-                </Button>
+                {canLog && <LogExpenseButton />}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -86,12 +90,13 @@ export default async function ExpensesPage() {
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold">Category</TableHead>
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold">Description</TableHead>
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold text-right">Amount</TableHead>
+                                {isAdmin && <TableHead className="w-10"></TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {expenses.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="p-12 text-center text-muted-foreground uppercase text-[10px] tracking-widest">
+                                    <TableCell colSpan={isAdmin ? 5 : 4} className="p-12 text-center text-muted-foreground uppercase text-[10px] tracking-widest">
                                         No expenses logged yet.
                                     </TableCell>
                                 </TableRow>
@@ -103,6 +108,11 @@ export default async function ExpensesPage() {
                                     <TableCell><span className="text-[10px] font-bold uppercase bg-accent px-2 py-0.5 rounded">{expense.category}</span></TableCell>
                                     <TableCell className="text-xs font-medium uppercase tracking-tight">{expense.description}</TableCell>
                                     <TableCell className="text-right font-bold">£{Number(expense.amount).toFixed(2)}</TableCell>
+                                    {isAdmin && (
+                                        <TableCell className="text-right">
+                                            <DeleteExpenseButton id={expense.id} />
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>
