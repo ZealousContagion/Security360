@@ -140,6 +140,15 @@ async function main() {
         await prisma.notification.create({ data: n })
     }
 
+    // 10. Suppliers
+    const supplierData = [
+        { name: "Harare Timber & Steel", email: "sales@hararetimber.co.zw", phone: "+263 242 123456", address: "15 Coventry Rd, Workington" },
+        { name: "Global Fencing Supplies", email: "info@globalfencing.com", phone: "+263 772 987654", address: "88 Willowvale Rd" },
+    ]
+    for (const s of supplierData) {
+        await prisma.supplier.create({ data: s })
+    }
+
     // 9. Sample Quote (Draft)
     const service = await prisma.fencingService.findFirst()
     if (service) {

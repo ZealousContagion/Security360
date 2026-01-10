@@ -214,18 +214,57 @@ model JobPhoto {
   @@index([jobId])
 }
 
+model Supplier {
+  id             String          @id @default(uuid())
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  PurchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+}
+
+model PurchaseOrder {
+  id         String              @id @default(uuid())
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id])
+  status     String              @default("DRAFT") // DRAFT, SENT, RECEIVED
+  items      PurchaseOrderItem[]
+  total      Decimal             @db.Decimal(10, 2)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  catalogItemId   String
+  catalogItem     CatalogItem   @relation(fields: [catalogItemId], references: [id])
+  quantity        Decimal       @db.Decimal(10, 2)
+  unitPrice       Decimal       @db.Decimal(10, 2)
+  totalPrice      Decimal       @db.Decimal(10, 2)
+
+  @@index([purchaseOrderId])
+  @@index([catalogItemId])
+}
+
 model CatalogItem {
-  id              String            @id @default(uuid())
+  id              String              @id @default(uuid())
   name            String
   description     String?
-  price           Decimal           @db.Decimal(10, 2)
-  unit            String            @default("item")
+  price           Decimal             @db.Decimal(10, 2)
+  unit            String              @default("item")
   category        String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  minStockLevel   Decimal           @default(0) @db.Decimal(10, 2)
-  stockLevel      Decimal           @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  minStockLevel   Decimal             @default(0) @db.Decimal(10, 2)
+  stockLevel      Decimal             @default(0) @db.Decimal(10, 2)
   BillOfMaterials BillOfMaterials[]
+  PurchaseItems   PurchaseOrderItem[]
 
   @@map("catalog_items")
 }

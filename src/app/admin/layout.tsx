@@ -39,6 +39,7 @@ export default async function AdminLayout({
                             <div className="pt-6 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-2">Finance</div>
                             <Link href="/admin/payments" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Payments</Button></Link>
                             <Link href="/admin/expenses" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Expenses</Button></Link>
+                            <Link href="/admin/purchase-orders" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Purchase Orders</Button></Link>
                             <Link href="/admin/reports" className="block"><Button variant="ghost" className="w-full justify-start font-normal hover:bg-muted text-xs uppercase tracking-widest h-8">Reports</Button></Link>
                         </>
                     )}
