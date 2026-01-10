@@ -63,13 +63,25 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                     <SaveJobSheetButton 
                         jobId={job.id}
                         customer={customer}
-                        service={quote?.fencingService}
+                        service={quote ? {
+                            ...quote.fencingService,
+                            pricePerMeter: Number(quote.fencingService.pricePerMeter),
+                            installationFee: Number(quote.fencingService.installationFee)
+                        } : null}
                         specs={{
                             length: Number(quote?.lengthMeters),
                             height: Number(quote?.heightMeters),
                             terrain: quote?.terrain || 'Standard'
                         }}
-                        materials={quote?.fencingService.BillOfMaterials || []}
+                        materials={quote?.fencingService.BillOfMaterials.map((m: any) => ({
+                            ...m,
+                            quantityPerMeter: Number(m.quantityPerMeter),
+                            wastageFactor: Number(m.wastageFactor),
+                            catalogItem: {
+                                ...m.catalogItem,
+                                price: Number(m.catalogItem.price)
+                            }
+                        })) || []}
                         assignedTo={job.assignedTo?.name}
                         scheduledDate={job.scheduledDate?.toISOString()}
                     />
