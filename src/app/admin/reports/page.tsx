@@ -2,8 +2,43 @@ import { prisma } from "@/core/database";
 import { isManager } from "@/lib/rbac";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { DollarSign, BarChart3, TrendingUp, PieChart } from "lucide-react";
+import { RevenueChart } from "./Charts";
 
-// ... (stats functions)
+async function getStats() {
+    const paidInvoices = await prisma.invoice.findMany({
+        where: { status: 'PAID' }
+    });
+    const totalRevenue = paidInvoices.reduce((acc, inv) => acc + Number(inv.total), 0);
+
+    const outstandingInvoices = await prisma.invoice.findMany({
+        where: { status: { in: ['SENT', 'PENDING'] } }
+    });
+    const totalOutstanding = outstandingInvoices.reduce((acc, inv) => acc + Number(inv.total), 0);
+
+    const revenueByMonthMap = new Map<string, number>();
+    paidInvoices.forEach(inv => {
+        const date = new Date(inv.createdAt);
+        const month = date.toLocaleString('default', { month: 'short' });
+        const val = Number(inv.total);
+        revenueByMonthMap.set(month, (revenueByMonthMap.get(month) || 0) + val);
+    });
+
+    if (revenueByMonthMap.size === 0) {
+        revenueByMonthMap.set('Jan', 0);
+        revenueByMonthMap.set('Feb', 0);
+        revenueByMonthMap.set('Mar', 0);
+    }
+
+    const revenueByMonth = Array.from(revenueByMonthMap.entries()).map(([name, total]) => ({ name, total }));
+
+    return {
+        totalRevenue,
+        totalOutstanding,
+        revenueByMonth,
+        invoiceCount: paidInvoices.length + outstandingInvoices.length
+    };
+}
 
 export default async function ReportsPage() {
     if (!await isManager()) {
