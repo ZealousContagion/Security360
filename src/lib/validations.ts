@@ -25,3 +25,10 @@ export const PurchaseOrderSchema = z.object({
         unitPrice: z.number().nonnegative("Unit price cannot be negative"),
     })).min(1, "At least one item is required"),
 });
+
+export const CustomerSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address").optional().or(z.literal('')),
+    phone: z.string().min(6, "Phone number is too short").optional().or(z.literal('')),
+    address: z.string().min(5, "Address is too short").optional().or(z.literal('')),
+});

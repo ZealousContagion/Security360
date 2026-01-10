@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Users, ExternalLink, UserPlus, Phone, MapPin } from 'lucide-react';
+import { Users, ExternalLink, UserPlus, Phone, MapPin, Edit2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function CustomersPage() {
@@ -20,10 +20,12 @@ export default async function CustomersPage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase">Customer Directory</h1>
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Manage client relationships and portal access</p>
                 </div>
-                <Button className="text-[10px] uppercase tracking-[0.2em] font-bold h-10 px-6">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    New Customer
-                </Button>
+                <Link href="/admin/customers/new">
+                    <Button className="text-[10px] uppercase tracking-[0.2em] font-bold h-10 px-6">
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        New Customer
+                    </Button>
+                </Link>
             </div>
 
             <Card>
@@ -40,7 +42,7 @@ export default async function CustomersPage() {
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold">Client Details</TableHead>
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold">Stats</TableHead>
                                 <TableHead className="uppercase text-[10px] tracking-widest font-bold">Contact</TableHead>
-                                <TableHead className="uppercase text-[10px] tracking-widest font-bold text-right">Portal Access</TableHead>
+                                <TableHead className="uppercase text-[10px] tracking-widest font-bold text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -80,12 +82,19 @@ export default async function CustomersPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Link href={`/portal/${c.id}`} target="_blank">
-                                            <Button variant="ghost" className="text-[9px] uppercase tracking-[0.2em] font-black hover:bg-primary/10 hover:text-primary">
-                                                Open Portal
-                                                <ExternalLink className="w-3 h-3 ml-2" />
-                                            </Button>
-                                        </Link>
+                                        <div className="flex justify-end gap-2">
+                                            <Link href={`/admin/customers/${c.id}/edit`}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" title="Edit Customer">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                            </Link>
+                                            <Link href={`/portal/${c.id}`} target="_blank">
+                                                <Button variant="ghost" className="text-[9px] uppercase tracking-[0.2em] font-black hover:bg-primary/10 hover:text-primary">
+                                                    Open Portal
+                                                    <ExternalLink className="w-3 h-3 ml-2" />
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
