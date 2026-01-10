@@ -32,3 +32,10 @@ export const CustomerSchema = z.object({
     phone: z.string().min(6, "Phone number is too short").optional().or(z.literal('')),
     address: z.string().min(5, "Address is too short").optional().or(z.literal('')),
 });
+
+export const TeamMemberSchema = z.object({
+    name: z.string().min(2, "Name is too short"),
+    email: z.string().email("Invalid email"),
+    role: z.string().min(2, "Role is required"),
+    status: z.enum(['ACTIVE', 'INACTIVE', 'AWAY']).default('ACTIVE'),
+});
