@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { QuoteEstimation } from './quoting-engine';
 
 export async function generateQuotePDF(
@@ -9,15 +9,15 @@ export async function generateQuotePDF(
     estimation: QuoteEstimation,
     signatureData?: string | null
 ) {
-    const doc: any = new jsPDF();
+    const doc = new jsPDF();
     const gold = [239, 159, 70];
     const black = [0, 0, 0];
 
     // -- Header --
-    doc.setFillColor(...black);
+    doc.setFillColor(black[0], black[1], black[2]);
     doc.rect(0, 0, 210, 40, 'F');
     
-    doc.setTextColor(...gold);
+    doc.setTextColor(gold[0], gold[1], gold[2]);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text("SECURITY 360", 20, 25);
@@ -27,7 +27,7 @@ export async function generateQuotePDF(
     doc.text("FENCING MANAGEMENT SYSTEMS", 20, 32);
 
     // -- Quote Info --
-    doc.setTextColor(...black);
+    doc.setTextColor(black[0], black[1], black[2]);
     doc.setFontSize(10);
     doc.text("QUOTE TO:", 20, 55);
     doc.setFontSize(12);
@@ -54,11 +54,11 @@ export async function generateQuotePDF(
         [service?.name, `${estimation.subtotal.toFixed(2)}`, `15%`, `${estimation.total.toFixed(2)}`]
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
         startY: 85,
         head: [['SERVICE DESCRIPTION', 'SUBTOTAL', 'VAT', 'TOTAL']],
         body: tableBody,
-        headStyles: { fillColor: black, textColor: gold, fontSize: 9, fontStyle: 'bold' },
+        headStyles: { fillColor: black as any, textColor: gold as any, fontSize: 9, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 5 },
         columnStyles: {
             0: { cellWidth: 100 },
@@ -80,11 +80,11 @@ export async function generateQuotePDF(
         `£${m.estimatedCost.toFixed(2)}`
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
         startY: finalY + 5,
         head: [['MATERIAL', 'QUANTITY', 'EST. COST']],
         body: bomBody,
-        headStyles: { fillColor: [240, 240, 240], textColor: black, fontSize: 8 },
+        headStyles: { fillColor: [240, 240, 240], textColor: black as any, fontSize: 8 },
         styles: { fontSize: 8 },
         columnStyles: {
             1: { halign: 'center' },
@@ -105,11 +105,12 @@ export async function generateQuotePDF(
         doc.text(`Digitally signed on ${new Date().toLocaleString()}`, 20, summaryY + 35);
     }
 
-    doc.setFillColor(255, 183, 0, 0.1);
+    doc.setFillColor(255, 183, 0); // Background for summary
+    // Using opacity via rect options if needed, but jspdf is simple.
     doc.rect(130, summaryY, 60, 30, 'F');
     
     doc.setFontSize(12);
-    doc.setTextColor(...black);
+    doc.setTextColor(black[0], black[1], black[2]);
     doc.text("GRAND TOTAL", 135, summaryY + 12);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -134,15 +135,15 @@ export async function generateJobSheetPDF(
     assignedTo?: string | null,
     scheduledDate?: Date | null
 ) {
-    const doc: any = new jsPDF();
+    const doc = new jsPDF();
     const gold = [239, 159, 70];
     const black = [0, 0, 0];
 
     // -- Header --
-    doc.setFillColor(...black);
+    doc.setFillColor(black[0], black[1], black[2]);
     doc.rect(0, 0, 210, 40, 'F');
     
-    doc.setTextColor(...gold);
+    doc.setTextColor(gold[0], gold[1], gold[2]);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text("JOB SHEET", 20, 25);
@@ -152,7 +153,7 @@ export async function generateJobSheetPDF(
     doc.text(`ID: ${jobId.slice(0, 8).toUpperCase()} | ${new Date().toLocaleDateString()}`, 20, 32);
 
     // -- Client & Assignment Info --
-    doc.setTextColor(...black);
+    doc.setTextColor(black[0], black[1], black[2]);
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text("CLIENT INFORMATION", 20, 55);
@@ -179,11 +180,11 @@ export async function generateJobSheetPDF(
         ['Terrain', specs.terrain]
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
         startY: 85,
         head: [['SPECIFICATION', 'DETAILS']],
         body: specData,
-        headStyles: { fillColor: black, textColor: gold, fontSize: 9 },
+        headStyles: { fillColor: black as any, textColor: gold as any, fontSize: 9 },
         styles: { fontSize: 8 }
     });
 
@@ -202,11 +203,11 @@ export async function generateJobSheetPDF(
         ];
     });
 
-    (doc as any).autoTable({
+    autoTable(doc, {
         startY: finalY + 5,
         head: [['#', 'MATERIAL ITEM', 'QUANTITY']],
         body: bomBody,
-        headStyles: { fillColor: [240, 240, 240], textColor: black, fontSize: 8 },
+        headStyles: { fillColor: [240, 240, 240], textColor: black as any, fontSize: 8 },
         styles: { fontSize: 8 },
         columnStyles: {
             0: { cellWidth: 10 },
