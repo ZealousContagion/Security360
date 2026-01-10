@@ -47,6 +47,18 @@ export async function GET(req: NextRequest) {
 
     const conversionRate = totalQuotes > 0 ? (convertedQuotes / totalQuotes) * 100 : 0;
 
+    // 5. Monthly Revenue
+    const monthlyRevenue: Record<string, number> = {};
+    const allPaid = await prisma.invoice.findMany({
+        where: { status: 'PAID' },
+        select: { total: true, issuedAt: true }
+    });
+
+    for (const inv of allPaid) {
+        const monthKey = inv.issuedAt.toISOString().slice(0, 7); // YYYY-MM
+        monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + inv.total.toNumber();
+    }
+
     return NextResponse.json({
         totalRevenue: totalRevenue.toNumber(),
         paidCount,
