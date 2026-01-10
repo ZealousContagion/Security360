@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
     format, 
     addDays, 
@@ -8,10 +8,17 @@ import {
     isSameDay, 
     addWeeks, 
     subWeeks,
-    startOfDay,
-    parseISO
+    startOfMonth,
+    endOfMonth,
+    eachDayOfInterval,
+    addMonths,
+    subMonths,
+    startOfQuarter,
+    endOfQuarter,
+    addQuarters,
+    subQuarters
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, AlertCircle, BellRing, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, AlertCircle, BellRing, Loader2, LayoutGrid, LayoutList, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -36,6 +43,8 @@ interface ScheduleBoardProps {
     unscheduledJobs: Job[];
 }
 
+type ViewMode = 'WEEK' | 'BIWEEK' | 'MONTH' | 'QUARTER';
+
 // --- Helper for strict mode DND ---
 const StrictModeDroppable = ({ children, ...props }: any) => {
   const [enabled, setEnabled] = useState(false);
@@ -53,7 +62,8 @@ const StrictModeDroppable = ({ children, ...props }: any) => {
 };
 
 export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs: initialUnscheduled }: ScheduleBoardProps) {
-    const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [viewMode, setViewMode] = useState<ViewMode>('WEEK');
     const [scheduled, setScheduled] = useState(initialScheduled);
     const [unscheduled, setUnscheduled] = useState(initialUnscheduled);
     
@@ -63,10 +73,60 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
         setUnscheduled(initialUnscheduled);
     }, [initialScheduled, initialUnscheduled]);
 
-    const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(currentWeekStart, i));
+    // Calculate days to display based on View Mode
+    const daysToDisplay = useMemo(() => {
+        const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+        
+        switch (viewMode) {
+            case 'WEEK':
+                return Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+            case 'BIWEEK':
+                return Array.from({ length: 14 }).map((_, i) => addDays(start, i));
+            case 'MONTH': {
+                const monthStart = startOfMonth(currentDate);
+                const monthEnd = endOfMonth(currentDate);
+                // Align to week start/end for grid
+                const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+                // We want to show the full month, plus padding to complete the last week
+                // A month can span 4-6 weeks. 
+                // Let's just generate days until we hit the end of the week of the last day of month.
+                // Or simpler: just standard calendar logic.
+                const gridEnd = addDays(startOfWeek(monthEnd, { weekStartsOn: 1 }), 6);
+                return eachDayOfInterval({ start: gridStart, end: gridEnd });
+            }
+            case 'QUARTER': {
+                 const qStart = startOfQuarter(currentDate);
+                 const qEnd = endOfQuarter(currentDate);
+                 // Same grid logic
+                 const gridStart = startOfWeek(qStart, { weekStartsOn: 1 });
+                 const gridEnd = addDays(startOfWeek(qEnd, { weekStartsOn: 1 }), 6);
+                 return eachDayOfInterval({ start: gridStart, end: gridEnd });
+            }
+            default:
+                return [];
+        }
+    }, [currentDate, viewMode]);
 
-    const nextWeek = () => setCurrentWeekStart(addWeeks(currentWeekStart, 1));
-    const prevWeek = () => setCurrentWeekStart(subWeeks(currentWeekStart, 1));
+    // Navigation handlers
+    const nextPeriod = () => {
+        switch (viewMode) {
+            case 'WEEK': setCurrentDate(addWeeks(currentDate, 1)); break;
+            case 'BIWEEK': setCurrentDate(addWeeks(currentDate, 2)); break;
+            case 'MONTH': setCurrentDate(addMonths(currentDate, 1)); break;
+            case 'QUARTER': setCurrentDate(addQuarters(currentDate, 1)); break;
+        }
+    };
+
+    const prevPeriod = () => {
+        switch (viewMode) {
+            case 'WEEK': setCurrentDate(subWeeks(currentDate, 1)); break;
+            case 'BIWEEK': setCurrentDate(subWeeks(currentDate, 2)); break;
+            case 'MONTH': setCurrentDate(subMonths(currentDate, 1)); break;
+            case 'QUARTER': setCurrentDate(subQuarters(currentDate, 1)); break;
+        }
+    };
+
+    const resetToToday = () => setCurrentDate(new Date());
 
     // Reminder Modal State
     const [reminderJobId, setReminderJobId] = useState<string | null>(null);
@@ -83,7 +143,6 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
         const destId = destination.droppableId;
         
         if (destId === 'pending') {
-            // Logic to unschedule if needed, skipping for now as per plan
             return; 
         }
 
@@ -111,7 +170,6 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
             try {
                 const res = await scheduleJob(draggableId, newDate);
                 if (!res.success) {
-                    // Revert on failure (simplified: just reload or alert)
                     alert('Failed to schedule job: ' + res.error);
                     window.location.reload();
                 }
@@ -149,7 +207,7 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
                                     <div 
                                         ref={provided.innerRef} 
                                         {...provided.droppableProps}
-                                        className="space-y-4 min-h-[100px]"
+                                        className="space-y-4 min-h-[100px] max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
                                     >
                                         {unscheduled.length === 0 && (
                                             <p className="text-[9px] text-slate-500 uppercase font-bold text-center py-8">All jobs scheduled.</p>
@@ -178,54 +236,63 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
                             </StrictModeDroppable>
                         </CardContent>
                     </Card>
-                    
-                    <div className="p-6 border border-dashed rounded-lg bg-accent/30">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Pro-Tip:</p>
-                        <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed uppercase font-medium">
-                            Drag cards from here onto a specific date on the calendar to lock in the schedule.
-                        </p>
-                    </div>
                 </div>
 
                 {/* Right Side: The Calendar */}
                 <div className="flex-1 min-w-0 space-y-6">
                     {/* Controls */}
-                    <div className="flex items-center justify-between bg-white p-4 border rounded-lg shadow-sm">
+                    <div className="flex flex-col md:flex-row items-center justify-between bg-white p-4 border rounded-lg shadow-sm gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                                 <CalendarIcon className="w-5 h-5" />
                             </div>
                             <div>
                                 <h2 className="text-sm font-black uppercase tracking-widest">
-                                    {format(currentWeekStart, 'MMMM yyyy')}
+                                    {format(currentDate, viewMode === 'MONTH' ? 'MMMM yyyy' : viewMode === 'QUARTER' ? 'QQQ yyyy' : 'MMMM yyyy')}
                                 </h2>
                                 <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
-                                    Weekly Production Schedule
+                                    Production Schedule
                                 </p>
                             </div>
                         </div>
+
+                        {/* View Switcher */}
+                        <div className="flex bg-accent/30 p-1 rounded-md">
+                            {(['WEEK', 'BIWEEK', 'MONTH', 'QUARTER'] as ViewMode[]).map(mode => (
+                                <button
+                                    key={mode}
+                                    onClick={() => setViewMode(mode)}
+                                    className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === mode ? 'bg-white shadow text-black' : 'text-muted-foreground hover:text-black'}`}
+                                >
+                                    {mode === 'BIWEEK' ? '2 Weeks' : mode}
+                                </button>
+                            ))}
+                        </div>
+
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={prevWeek} className="h-8 w-8">
+                            <Button variant="outline" size="icon" onClick={prevPeriod} className="h-8 w-8">
                                 <ChevronLeft className="w-4 h-4" />
                             </Button>
-                            <Button variant="outline" className="h-8 text-[10px] uppercase font-bold px-4" onClick={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
+                            <Button variant="outline" className="h-8 text-[10px] uppercase font-bold px-4" onClick={resetToToday}>
                                 Today
                             </Button>
-                            <Button variant="outline" size="icon" onClick={nextWeek} className="h-8 w-8">
+                            <Button variant="outline" size="icon" onClick={nextPeriod} className="h-8 w-8">
                                 <ChevronRight className="w-4 h-4" />
                             </Button>
                         </div>
                     </div>
 
                     {/* Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                        {weekDays.map((day, i) => {
+                    <div className={`grid grid-cols-1 md:grid-cols-7 gap-4 ${viewMode === 'QUARTER' ? 'md:gap-2' : ''}`}>
+                        {daysToDisplay.map((day, i) => {
                             const dateStr = format(day, 'yyyy-MM-dd');
                             const dayJobs = scheduled.filter(j => j.scheduledDate && isSameDay(new Date(j.scheduledDate), day));
                             const isToday = isSameDay(day, new Date());
+                            // Determine if day is outside current month in Month/Quarter view for visual distinction
+                            const isOutside = (viewMode === 'MONTH' && day.getMonth() !== currentDate.getMonth());
 
                             return (
-                                <div key={i} className="space-y-3">
+                                <div key={i} className={`space-y-3 ${isOutside ? 'opacity-50' : ''}`}>
                                     <div className={`text-center p-2 rounded-md border transition-colors ${isToday ? 'bg-black text-white border-black' : 'bg-white border-border'}`}>
                                         <p className="text-[8px] font-black uppercase tracking-[0.2em] opacity-70">{format(day, 'EEE')}</p>
                                         <p className="text-lg font-black tracking-tighter">{format(day, 'dd')}</p>
@@ -236,7 +303,7 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
                                             <div 
                                                 ref={provided.innerRef} 
                                                 {...provided.droppableProps}
-                                                className={`min-h-[400px] rounded-lg border border-dashed border-muted-foreground/20 p-2 space-y-2 transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5 border-primary/50' : 'bg-accent/20'}`}
+                                                className={`min-h-[120px] rounded-lg border border-dashed border-muted-foreground/20 p-2 space-y-2 transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5 border-primary/50' : 'bg-accent/20'} ${viewMode === 'QUARTER' ? 'min-h-[80px]' : 'min-h-[200px]'}`}
                                             >
                                                 {dayJobs.map((job, index) => (
                                                     <Draggable key={job.id} draggableId={job.id} index={index}>
@@ -245,31 +312,27 @@ export function ScheduleBoard({ scheduledJobs: initialScheduled, unscheduledJobs
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
-                                                                className="p-3 border-none shadow-sm hover:ring-1 ring-primary transition-all group cursor-grab active:cursor-grabbing bg-white relative"
+                                                                className="p-2 border-none shadow-sm hover:ring-1 ring-primary transition-all group cursor-grab active:cursor-grabbing bg-white relative"
                                                             >
-                                                                <div className="space-y-2">
+                                                                <div className="space-y-1">
                                                                     <div className="flex justify-between items-start">
-                                                                        <Badge variant="outline" className="text-[7px] h-4 px-1.5 uppercase font-black tracking-tighter border-black/10">
+                                                                        <Badge variant="outline" className="text-[6px] h-3 px-1 uppercase font-black tracking-tighter border-black/10">
                                                                             {job.status}
                                                                         </Badge>
                                                                         <button 
                                                                             onClick={(e) => {
-                                                                                e.stopPropagation(); // prevent drag start if hitting button (though handle is on card usually)
+                                                                                e.stopPropagation(); 
                                                                                 setReminderJobId(job.id);
                                                                             }}
                                                                             className="text-muted-foreground hover:text-primary transition-colors"
                                                                             title="Set Reminder"
                                                                         >
-                                                                            <BellRing className="w-3 h-3" />
+                                                                            <BellRing className="w-2.5 h-2.5" />
                                                                         </button>
                                                                     </div>
-                                                                    <p className="text-[10px] font-black uppercase leading-tight tracking-tight line-clamp-2">
+                                                                    <p className="text-[8px] font-black uppercase leading-tight tracking-tight line-clamp-1">
                                                                         {job.invoice.customer.name}
                                                                     </p>
-                                                                    <div className="flex items-center gap-1.5 text-[8px] text-muted-foreground font-bold uppercase">
-                                                                        <User className="w-2.5 h-2.5 text-primary" />
-                                                                        {job.assignedTo?.name || 'Pending'}
-                                                                    </div>
                                                                 </div>
                                                             </Card>
                                                         )}
