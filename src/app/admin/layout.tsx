@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/Header';
 import { getCurrentUserRole } from '@/lib/rbac';
+import { OfflineSyncManager } from '@/components/OfflineSyncManager';
 
 export default async function AdminLayout({
     children,
@@ -72,6 +73,7 @@ export default async function AdminLayout({
                     </div>
                 </main>
             </div>
+            <OfflineSyncManager />
         </div>
     );
 }
