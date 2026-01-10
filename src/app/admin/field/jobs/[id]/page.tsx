@@ -64,7 +64,8 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                         jobId={job.id}
                         customer={customer}
                         service={quote ? {
-                            ...quote.fencingService,
+                            id: quote.fencingService.id,
+                            name: quote.fencingService.name,
                             pricePerMeter: Number(quote.fencingService.pricePerMeter),
                             installationFee: Number(quote.fencingService.installationFee)
                         } : null}
@@ -74,11 +75,13 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                             terrain: quote?.terrain || 'Standard'
                         }}
                         materials={quote?.fencingService.BillOfMaterials.map((m: any) => ({
-                            ...m,
+                            id: m.id,
                             quantityPerMeter: Number(m.quantityPerMeter),
                             wastageFactor: Number(m.wastageFactor),
                             catalogItem: {
-                                ...m.catalogItem,
+                                id: m.catalogItem.id,
+                                name: m.catalogItem.name,
+                                unit: m.catalogItem.unit,
                                 price: Number(m.catalogItem.price)
                             }
                         })) || []}
