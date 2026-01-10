@@ -18,9 +18,16 @@ export async function sendQuoteEmail({ to, customerName, quoteId, amount, portal
     }
 
     try {
+        // Dev Mode: Override recipient to TEST_EMAIL if set
+        const recipient = process.env.TEST_EMAIL || to;
+        
+        if (process.env.TEST_EMAIL) {
+            console.log(`[Dev Mode] Redirecting email for ${to} to ${process.env.TEST_EMAIL}`);
+        }
+
         const { data, error } = await resend.emails.send({
             from: process.env.FROM_EMAIL || 'Security 360 <onboarding@resend.dev>',
-            to: [to],
+            to: [recipient],
             subject: `Quote #${quoteId.slice(0, 8).toUpperCase()} from Security 360`,
             html: `
                 <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
