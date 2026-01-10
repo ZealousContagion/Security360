@@ -164,10 +164,12 @@ export default async function FieldDashboard() {
                             {/* Actions */}
                             <div className="p-6 bg-white flex flex-row md:flex-col gap-4 border-t md:border-t-0 md:border-l shrink-0">
                                 <div className="flex flex-col gap-2">
-                                    <Button className="flex-1 text-[9px] uppercase tracking-widest font-black h-10 px-6">
-                                        <ClipboardList className="w-4 h-4 mr-2" />
-                                        Job Sheet
-                                    </Button>
+                                    <Link href={`/admin/field/jobs/${job.id}`} className="flex-1">
+                                        <Button className="w-full text-[9px] uppercase tracking-widest font-black h-10 px-6">
+                                            <ClipboardList className="w-4 h-4 mr-2" />
+                                            Job Sheet
+                                        </Button>
+                                    </Link>
                                     <CompleteJobButton jobId={job.id} isCompleted={job.status === 'COMPLETED'} />
                                 </div>
                                 
