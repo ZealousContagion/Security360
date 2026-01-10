@@ -15,7 +15,10 @@ import {
     ChevronLeft, 
     Printer, 
     Clock,
-    CheckCircle2
+    CheckCircle2,
+    TrendingUp,
+    AlertTriangle,
+    Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { PrintButton } from '@/components/PrintButton';
@@ -26,6 +29,7 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
     const job = await prisma.job.findUnique({
         where: { id },
         include: {
+            expenses: true,
             invoice: {
                 include: {
                     customer: true,
@@ -47,8 +51,49 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
     const quote = job.invoice.quote;
     const customer = job.invoice.customer;
 
+    // --- Profitability Logic ---
+    const revenue = Number(job.invoice.total);
+    const totalExpenses = job.expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const currentMargin = revenue > 0 ? ((revenue - totalExpenses) / revenue) * 100 : 0;
+    const isAtRisk = currentMargin < 15;
+
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-20">
+            {/* Profitability HUD (Management Only, Hidden on Print) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
+                <Card className={`border-none shadow-xl text-white ${isAtRisk ? 'bg-destructive animate-pulse' : 'bg-black'}`}>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-[8px] uppercase font-black tracking-[0.2em] opacity-70">Project Margin</p>
+                                <p className="text-3xl font-black mt-1 tracking-tighter">{Math.round(currentMargin)}%</p>
+                            </div>
+                            {isAtRisk ? <AlertTriangle className="w-8 h-8 opacity-50" /> : <TrendingUp className="w-8 h-8 text-primary opacity-50" />}
+                        </div>
+                        {isAtRisk && <p className="text-[7px] font-black uppercase mt-2 tracking-widest">Action Required: Margin Critical</p>}
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-white border-dashed border-2">
+                    <CardContent className="pt-6">
+                        <p className="text-[8px] uppercase font-black text-muted-foreground tracking-[0.2em]">Total Revenue</p>
+                        <p className="text-2xl font-black mt-1 tracking-tighter uppercase">£{revenue.toLocaleString()}</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-white border-dashed border-2">
+                    <CardContent className="pt-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-[8px] uppercase font-black text-muted-foreground tracking-[0.2em]">Actual Costs</p>
+                                <p className="text-2xl font-black mt-1 tracking-tighter uppercase">£{totalExpenses.toLocaleString()}</p>
+                            </div>
+                            <Wallet className="w-4 h-4 text-muted-foreground opacity-30" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Header / Navigation */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
                 <div>

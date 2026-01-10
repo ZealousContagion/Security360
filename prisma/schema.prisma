@@ -161,9 +161,12 @@ model Expense {
   description String
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id])
 
   @@index([category])
   @@index([date])
+  @@index([jobId])
 }
 
 model Notification {
@@ -201,6 +204,7 @@ model Job {
   invoice       Invoice     @relation(fields: [invoiceId], references: [id])
   assignedTo    TeamMember? @relation(fields: [teamMemberId], references: [id])
   photos        JobPhoto[]
+  expenses      Expense[]
 
   @@index([teamMemberId])
   @@index([status])

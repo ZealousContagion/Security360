@@ -13,8 +13,20 @@ export default async function ExpensesPage() {
     const isAdmin = role === 'ADMIN';
 
     const expenses = await prisma.expense.findMany({
-        orderBy: { date: 'desc' }
+        orderBy: { date: 'desc' },
+        include: { job: { include: { invoice: { include: { customer: true } } } } }
     });
+
+    const activeJobs = await prisma.job.findMany({
+        where: { status: { not: 'COMPLETED' } },
+        include: { invoice: { include: { customer: true } } },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    const serializedJobs = activeJobs.map(j => ({
+        id: j.id,
+        customerName: j.invoice.customer.name
+    }));
 
     const totalSpending = expenses.reduce((acc, exp) => acc + Number(exp.amount), 0);
     
@@ -36,7 +48,7 @@ export default async function ExpensesPage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase">Expenses</h1>
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Track business costs and materials</p>
                 </div>
-                {canLog && <LogExpenseButton />}
+                {canLog && <LogExpenseButton activeJobs={serializedJobs} />}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

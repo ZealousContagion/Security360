@@ -45,4 +45,5 @@ export const ExpenseSchema = z.object({
     amount: z.number().positive("Amount must be positive"),
     description: z.string().min(3, "Description is too short"),
     date: z.date().default(() => new Date()),
+    jobId: z.string().uuid().optional().or(z.literal('')),
 });
