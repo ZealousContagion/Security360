@@ -124,3 +124,119 @@ export async function generateQuotePDF(
 
     return doc;
 }
+
+export async function generateJobSheetPDF(
+    jobId: string,
+    customer: any,
+    service: any,
+    specs: { length: number, height: number, terrain: string },
+    materials: any[],
+    assignedTo?: string | null,
+    scheduledDate?: Date | null
+) {
+    const doc: any = new jsPDF();
+    const gold = [239, 159, 70];
+    const black = [0, 0, 0];
+
+    // -- Header --
+    doc.setFillColor(...black);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(...gold);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("JOB SHEET", 20, 25);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text(`ID: ${jobId.slice(0, 8).toUpperCase()} | ${new Date().toLocaleDateString()}`, 20, 32);
+
+    // -- Client & Assignment Info --
+    doc.setTextColor(...black);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("CLIENT INFORMATION", 20, 55);
+    doc.setFontSize(12);
+    doc.text(customer?.name || "N/A", 20, 62);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(customer?.address || "N/A", 20, 68);
+    doc.text(customer?.phone || "N/A", 20, 73);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("ASSIGNMENT", 120, 55);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Technician: ${assignedTo || 'Unassigned'}`, 120, 62);
+    doc.text(`Scheduled: ${scheduledDate ? new Date(scheduledDate).toLocaleDateString() : 'Pending'}`, 120, 68);
+
+    // -- Specs Table --
+    const specData = [
+        ['Service', service?.name || 'Standard'],
+        ['Length', `${specs.length}m`],
+        ['Height', `${specs.height}m`],
+        ['Terrain', specs.terrain]
+    ];
+
+    (doc as any).autoTable({
+        startY: 85,
+        head: [['SPECIFICATION', 'DETAILS']],
+        body: specData,
+        headStyles: { fillColor: black, textColor: gold, fontSize: 9 },
+        styles: { fontSize: 8 }
+    });
+
+    // -- Bill of Materials --
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("LOADING LIST (BILL OF MATERIALS)", 20, finalY);
+
+    const bomBody = materials.map((m, idx) => {
+        const qty = Math.ceil(Number(m.quantityPerMeter) * Number(specs.length) * Number(m.wastageFactor));
+        return [
+            idx + 1,
+            m.catalogItem.name,
+            `${qty} ${m.catalogItem.unit}`
+        ];
+    });
+
+    (doc as any).autoTable({
+        startY: finalY + 5,
+        head: [['#', 'MATERIAL ITEM', 'QUANTITY']],
+        body: bomBody,
+        headStyles: { fillColor: [240, 240, 240], textColor: black, fontSize: 8 },
+        styles: { fontSize: 8 },
+        columnStyles: {
+            0: { cellWidth: 10 },
+            2: { halign: 'right' }
+        }
+    });
+
+    // -- Sign-off Section --
+    const signY = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("SITE OBSERVATIONS:", 20, signY);
+    doc.rect(20, signY + 5, 170, 30); // Notes box
+
+    doc.text("COMPLETION VERIFICATION:", 20, signY + 45);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("[ ] Site cleaned and debris removed", 20, signY + 52);
+    doc.text("[ ] Client inspection completed", 20, signY + 58);
+
+    doc.line(20, signY + 80, 100, signY + 80);
+    doc.text("Technician Signature", 20, signY + 85);
+    
+    doc.line(120, signY + 80, 170, signY + 80);
+    doc.text("Date", 120, signY + 85);
+
+    // -- Footer --
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Security 360 Operational Intelligence System | Document Version 2.1", 105, 285, { align: 'center' });
+
+    return doc;
+}

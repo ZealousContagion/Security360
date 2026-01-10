@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { PrintButton } from '@/components/PrintButton';
+import { SaveJobSheetButton } from '@/components/SaveJobSheetButton';
 
 export default async function JobSheetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -59,6 +60,19 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Authorized Field Production Document</p>
                 </div>
                 <div className="flex gap-3">
+                    <SaveJobSheetButton 
+                        jobId={job.id}
+                        customer={customer}
+                        service={quote?.fencingService}
+                        specs={{
+                            length: Number(quote?.lengthMeters),
+                            height: Number(quote?.heightMeters),
+                            terrain: quote?.terrain || 'Standard'
+                        }}
+                        materials={quote?.fencingService.BillOfMaterials || []}
+                        assignedTo={job.assignedTo?.name}
+                        scheduledDate={job.scheduledDate?.toISOString()}
+                    />
                     <PrintButton />
                 </div>
             </div>
