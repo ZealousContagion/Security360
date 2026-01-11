@@ -97,7 +97,7 @@ export default async function CatalogPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-xs text-muted-foreground uppercase">{item.category}</TableCell>
-                                            <TableCell className="font-bold">£{Number(item.price).toFixed(2)}</TableCell>
+                                            <TableCell className="font-bold">${Number(item.price).toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     <span className={`font-mono text-xs ${isLow ? 'text-destructive font-bold' : ''}`}>

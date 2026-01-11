@@ -3,6 +3,83 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
+import { Decimal } from "@prisma/client/runtime/library";
+
+export async function getAvailableAddons() {
+    return await prisma.fencingAddon.findMany({
+        orderBy: { name: 'asc' }
+    });
+}
+
+export async function updateQuoteAddons(quoteId: string, addOnIds: string[]) {
+    try {
+        const quote = await prisma.fenceQuote.findUnique({
+            where: { id: quoteId },
+            include: { fencingService: true, customer: true }
+        });
+
+        if (!quote) throw new Error("Quote not found");
+        if (quote.status !== 'SENT') throw new Error("Only sent quotes can be adjusted");
+
+        // 1. Fetch selected addons
+        const addons = await prisma.fencingAddon.findMany({
+            where: { id: { in: addOnIds } }
+        });
+
+        // 2. Calculate new addon costs
+        // Note: In a real app, you'd use the full quoting logic. 
+        // Here we'll simplify: Base Price + Addons
+        let addonSubtotal = new Decimal(0);
+        for (const addon of addons) {
+            if (addon.pricingType === 'PER_METER') {
+                addonSubtotal = addonSubtotal.add(addon.price.mul(quote.lengthMeters));
+            } else {
+                addonSubtotal = addonSubtotal.add(addon.price);
+            }
+        }
+
+        // 3. Recalculate based on original service parameters
+        // We need to strip the old addons first to get base.
+        // Actually, we can just recalculate the whole thing.
+        const terrainFactor = quote.terrain === 'ROCKY' ? 1.4 : quote.terrain === 'SLOPED' ? 1.2 : 1.0;
+        const heightFactor = quote.heightMeters.toNumber() / 1.8;
+        const baseServiceSubtotal = quote.fencingService.pricePerMeter
+            .mul(quote.lengthMeters)
+            .mul(terrainFactor)
+            .mul(heightFactor)
+            .add(quote.fencingService.installationFee);
+
+        const newSubtotal = baseServiceSubtotal.add(addonSubtotal);
+        const vatRate = new Decimal(0.15); // Standard
+        const newVat = newSubtotal.mul(vatRate);
+        const newTotal = newSubtotal.add(newVat);
+
+        // 4. Update the quote
+        await prisma.fenceQuote.update({
+            where: { id: quoteId },
+            data: {
+                addOnIds,
+                subtotal: newSubtotal,
+                vat: newVat,
+                total: newTotal
+            }
+        });
+
+        await logAction({
+            action: 'CUSTOMER_PORTAL_QUOTE_ADJUSTED',
+            entityType: 'FenceQuote',
+            entityId: quoteId,
+            performedBy: `Customer: ${quote.customer.name}`,
+            metadata: { newTotal: newTotal.toNumber(), addOnIds }
+        });
+
+        revalidatePath(`/portal/${quote.customerId}`);
+        return { success: true };
+    } catch (err: any) {
+        console.error("Adjustment Error:", err);
+        return { success: false, error: err.message };
+    }
+}
 
 export async function customerApproveQuote(quoteId: string, signatureData: string) {
     try {

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Trash2, Plus, ShoppingCart, Loader2 } from 'lucide-react';
 import { createPurchaseOrder } from '../actions';
+import { useSearchParams } from 'next/navigation';
 
 interface CatalogItem {
     id: string;
@@ -25,9 +26,27 @@ interface PurchaseOrderFormProps {
 }
 
 export default function PurchaseOrderForm({ suppliers, catalogItems }: PurchaseOrderFormProps) {
+    const searchParams = useSearchParams();
     const [supplierId, setSupplierId] = useState('');
     const [items, setItems] = useState<{ catalogItemId: string, quantity: number, unitPrice: number }[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Handle pre-filled items from URL
+    useEffect(() => {
+        const prefilledItemId = searchParams.get('catalogItemId');
+        const prefilledQty = searchParams.get('quantity');
+
+        if (prefilledItemId) {
+            const catalogItem = catalogItems.find(i => i.id === prefilledItemId);
+            if (catalogItem) {
+                setItems([{
+                    catalogItemId: prefilledItemId,
+                    quantity: prefilledQty ? parseFloat(prefilledQty) : 10, // Default to 10 if not specified
+                    unitPrice: Number(catalogItem.price)
+                }]);
+            }
+        }
+    }, [searchParams, catalogItems]);
 
     const addItem = () => {
         setItems([...items, { catalogItemId: '', quantity: 1, unitPrice: 0 }]);
@@ -157,7 +176,7 @@ export default function PurchaseOrderForm({ suppliers, catalogItems }: PurchaseO
                                 <div className="md:col-span-2 text-right">
                                     <label className="block text-[8px] font-black uppercase tracking-widest mb-1 opacity-50">Subtotal</label>
                                     <p className="h-10 flex items-center justify-end font-black text-xs">
-                                        £{(item.quantity * item.unitPrice).toLocaleString()}
+                                        ${(item.quantity * item.unitPrice).toLocaleString()}
                                     </p>
                                 </div>
                                 <div className="md:col-span-1 text-right">
@@ -186,7 +205,7 @@ export default function PurchaseOrderForm({ suppliers, catalogItems }: PurchaseO
             <div className="flex justify-between items-center bg-black text-white p-6 rounded-xl shadow-xl">
                 <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Total Commitment</p>
-                    <p className="text-3xl font-black mt-1">£{total.toLocaleString()}</p>
+                    <p className="text-3xl font-black mt-1">${total.toLocaleString()}</p>
                 </div>
                 <Button 
                     type="submit" 

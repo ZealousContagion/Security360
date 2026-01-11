@@ -45,7 +45,7 @@ export default async function PipelinePage() {
                         <Target className="w-4 h-4 text-primary mr-3" />
                         <div>
                             <p className="text-[8px] font-black uppercase text-muted-foreground leading-none">Pipeline Value</p>
-                            <p className="text-sm font-black mt-1 tracking-tighter">£{totalValue.toLocaleString()}</p>
+                            <p className="text-sm font-black mt-1 tracking-tighter">${totalValue.toLocaleString()}</p>
                         </div>
                     </Card>
                     <Button className="text-[10px] uppercase tracking-[0.2em] font-black h-12 px-6">

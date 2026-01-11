@@ -89,7 +89,7 @@ export async function generateQuotePDF(
         return [
             m.name,
             `${displayQty} ${m.unit}`,
-            `£${m.estimatedCost.toFixed(2)}`
+            `$${m.estimatedCost.toFixed(2)}`
         ];
     });
 
@@ -127,7 +127,7 @@ export async function generateQuotePDF(
     doc.text("GRAND TOTAL", 135, summaryY + 12);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text(`£${estimation.total.toLocaleString(undefined, {minimumFractionDigits: 2})}`, 135, summaryY + 22);
+    doc.text(`$${estimation.total.toLocaleString(undefined, {minimumFractionDigits: 2})}`, 135, summaryY + 22);
 
     // -- Footer --
     doc.setFontSize(7);

@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { FileText, CheckCircle2, Clock, CreditCard, Download, ExternalLink } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, CreditCard, Download, ExternalLink, Settings2 } from 'lucide-react';
 import Link from 'next/link';
 import { ApproveQuoteButton } from '@/components/ApproveQuoteButton';
+import { InteractiveQuoteCard } from '@/components/InteractiveQuoteCard';
+import { getAvailableAddons } from '../actions';
 
 export default async function CustomerPortalPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -35,6 +37,10 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
         );
     }
 
+    const availableAddons = await getAvailableAddons();
+    const activeQuote = customer.Quotes.find(q => q.status === 'SENT');
+    const otherQuotes = customer.Quotes.filter(q => q.id !== activeQuote?.id);
+
     return (
         <div className="min-h-screen bg-accent/20 p-6 md:p-12">
             <div className="max-w-6xl mx-auto space-y-10">
@@ -58,11 +64,25 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     {/* Quotes History */}
-                    <div className="lg:col-span-2 space-y-8">
+                    <div className="lg:col-span-2 space-y-10">
+                        {/* Active Quote Focus */}
+                        {activeQuote && (
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
+                                    <Settings2 className="w-5 h-5 text-primary" />
+                                    Active Proposal
+                                </h3>
+                                <InteractiveQuoteCard 
+                                    quote={activeQuote as any} 
+                                    availableAddons={availableAddons as any} 
+                                />
+                            </div>
+                        )}
+
                         <div>
                             <h3 className="text-lg font-black uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-primary" />
-                                Your Quotes
+                                Quote History
                             </h3>
                             <Card>
                                 <Table>
@@ -76,25 +96,26 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {customer.Quotes.map((quote) => (
+                                        {(activeQuote ? otherQuotes : customer.Quotes).map((quote) => (
                                             <TableRow key={quote.id}>
                                                 <TableCell className="font-bold uppercase text-[10px]">{quote.fencingService.name}</TableCell>
                                                 <TableCell className="text-[10px] text-muted-foreground uppercase">{new Date(quote.createdAt).toLocaleDateString()}</TableCell>
-                                                <TableCell className="font-black text-xs">£{Number(quote.total).toFixed(2)}</TableCell>
+                                                <TableCell className="font-black text-xs">${Number(quote.total).toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={quote.status === 'APPROVED' ? 'success' : quote.status === 'DRAFT' ? 'outline' : quote.status === 'SENT' ? 'warning' : 'default'} className="uppercase text-[8px] tracking-tighter">
                                                         {quote.status}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {quote.status === 'SENT' ? (
-                                                        <ApproveQuoteButton quoteId={quote.id} />
-                                                    ) : (
-                                                        <Button variant="ghost" size="sm" className="text-[9px] uppercase tracking-widest font-black h-7 px-3">View PDF</Button>
-                                                    )}
+                                                    <Button variant="ghost" size="sm" className="text-[9px] uppercase tracking-widest font-black h-7 px-3">View PDF</Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
+                                        {customer.Quotes.length === 0 && (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-[10px] font-bold uppercase">No quotes found</TableCell>
+                                            </TableRow>
+                                        )}
                                     </TableBody>
                                 </Table>
                             </Card>
@@ -121,7 +142,7 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
                                             <TableRow key={inv.id}>
                                                 <TableCell className="font-mono text-[10px] font-black">{inv.invoiceNumber}</TableCell>
                                                 <TableCell className="text-[10px] text-muted-foreground uppercase">{new Date(inv.issuedAt).toLocaleDateString()}</TableCell>
-                                                <TableCell className="font-black text-xs">£{Number(inv.total).toFixed(2)}</TableCell>
+                                                <TableCell className="font-black text-xs">${Number(inv.total).toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={inv.status === 'PAID' ? 'success' : 'warning'} className="uppercase text-[8px] tracking-tighter">
                                                         {inv.status}

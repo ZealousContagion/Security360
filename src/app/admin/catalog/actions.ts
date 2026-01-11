@@ -134,7 +134,7 @@ export async function updateCatalogItemPrice(id: string, newPrice: number) {
 
             newPrice,
 
-            currency: 'GBP'
+            currency: 'USD'
 
         }
 

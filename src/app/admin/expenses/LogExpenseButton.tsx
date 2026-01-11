@@ -62,7 +62,7 @@ export function LogExpenseButton({ activeJobs = [] }: { activeJobs?: ActiveJob[]
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Amount (£)</label>
+                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Amount ($)</label>
                                         <Input name="amount" type="number" step="0.01" placeholder="0.00" required />
                                     </div>
                                 </div>

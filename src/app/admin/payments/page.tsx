@@ -47,7 +47,7 @@ export default async function PaymentsPage() {
                         <DollarSign className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black">£{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                        <div className="text-2xl font-black">${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Processed successful payments</p>
                     </CardContent>
                 </Card>
@@ -57,7 +57,7 @@ export default async function PaymentsPage() {
                         <ArrowDownLeft className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black text-muted-foreground">£{Number(pendingPayments._sum.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                        <div className="text-2xl font-black text-muted-foreground">${Number(pendingPayments._sum.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">{pendingPayments._count} outstanding invoices</p>
                     </CardContent>
                 </Card>
@@ -102,7 +102,7 @@ export default async function PaymentsPage() {
                                     <TableCell className="text-xs text-muted-foreground uppercase">
                                         {new Date(payment.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                                     </TableCell>
-                                    <TableCell className="font-bold">£{Number(payment.amount).toFixed(2)}</TableCell>
+                                    <TableCell className="font-bold">${Number(payment.amount).toFixed(2)}</TableCell>
                                     <TableCell className="text-right">
                                         <Badge variant={payment.status === 'SUCCESS' ? 'success' : payment.status === 'PENDING' ? 'warning' : 'destructive'} className="uppercase text-[8px] tracking-tighter">
                                             {payment.status}

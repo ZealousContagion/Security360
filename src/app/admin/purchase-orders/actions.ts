@@ -88,7 +88,7 @@ export async function updatePurchaseOrderStatus(id: string, status: string) {
                         data: {
                             type: 'INFO',
                             title: 'Price Update detected',
-                            message: `Catalog item "${catalogItem.name}" updated from £${oldPrice} to £${newPrice} based on PO receipt.`,
+                            message: `Catalog item "${catalogItem.name}" updated from $${oldPrice} to $${newPrice} based on PO receipt.`,
                         }
                     });
 

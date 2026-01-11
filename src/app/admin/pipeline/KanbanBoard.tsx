@@ -104,7 +104,7 @@ export function KanbanBoard({ initialQuotes }: { initialQuotes: Quote[] }) {
                                                                 </div>
 
                                                                 <div className="pt-3 mt-3 border-t border-dashed border-muted flex justify-between items-center">
-                                                                    <span className="text-[10px] font-black text-black">£{Number(quote.total).toLocaleString()}</span>
+                                                                    <span className="text-[10px] font-black text-black">$.${Number(quote.total).toLocaleString()}</span>
                                                                     <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                                         <TrendingUp className="w-3 h-3 text-primary" />
                                                                     </div>

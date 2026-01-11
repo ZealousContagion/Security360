@@ -84,18 +84,18 @@ export default async function PublicPaymentPage({
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Total Amount</p>
-                                        <p className="text-2xl font-black tracking-tighter">£{Number(invoice.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                                        <p className="text-2xl font-black tracking-tighter">${Number(invoice.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                     </div>
                                 </div>
 
                                 <div className="border-t border-dashed pt-6 space-y-4">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                                         <span>Subtotal</span>
-                                        <span>£{Number(invoice.subtotal).toFixed(2)}</span>
+                                        <span>${Number(invoice.subtotal).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                                         <span>VAT (15%)</span>
-                                        <span>£{Number(invoice.vat).toFixed(2)}</span>
+                                        <span>${Number(invoice.vat).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -121,7 +121,7 @@ export default async function PublicPaymentPage({
                             <CardContent className="space-y-6 text-center">
                                 <div>
                                     <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">50% Deposit to Start Project</p>
-                                    <p className="text-4xl font-black tracking-tighter text-black mt-1">£{depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-4xl font-black tracking-tighter text-black mt-1">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                 </div>
 
                                 <PaymentButton invoiceId={invoice.id} />

@@ -128,15 +128,15 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
                         <CardContent className="space-y-4">
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span>£{Number(quote.subtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span>${Number(quote.subtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
                                 <span className="text-muted-foreground">VAT (15%)</span>
-                                <span>£{Number(quote.vat).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span>${Number(quote.vat).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="pt-4 border-t border-dashed border-primary/30 flex justify-between items-end">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Total Quote</span>
-                                <span className="text-2xl font-black tracking-tighter">£{Number(quote.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span className="text-2xl font-black tracking-tighter">${Number(quote.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                         </CardContent>
                     </Card>

@@ -28,11 +28,11 @@ export function QuotePreview({ estimation }: QuotePreviewProps) {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Subtotal</p>
-                        <p className="text-xl font-black tracking-tighter">£{estimation.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="text-xl font-black tracking-tighter">${estimation.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Total (Inc. VAT)</p>
-                        <p className="text-xl font-black tracking-tighter text-primary">£{estimation.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="text-xl font-black tracking-tighter text-primary">${estimation.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
                 </div>
 
@@ -50,7 +50,7 @@ export function QuotePreview({ estimation }: QuotePreviewProps) {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <span className="text-[10px] text-muted-foreground font-medium uppercase">{m.quantity} {m.unit}</span>
-                                        <span className="text-[10px] font-black w-16 text-right">£{m.estimatedCost.toFixed(2)}</span>
+                                        <span className="text-[10px] font-black w-16 text-right">${m.estimatedCost.toFixed(2)}</span>
                                     </div>
                                 </div>
                             ))}

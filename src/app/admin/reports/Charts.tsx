@@ -43,7 +43,7 @@ export function ProfitabilityChart({ data }: { data: any[] }) {
                     tickLine={false} 
                     fontSize={10} 
                     tick={{ fill: '#94a3b8' }}
-                    tickFormatter={(value) => `£${value}`}
+                    tickFormatter={(value) => `$${value}`}
                 />
                 <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -93,7 +93,7 @@ export function ServiceBreakdownChart({ data }: { data: any[] }) {
                 </Pie>
                 <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => `£${value.toLocaleString()}`}
+                    formatter={(value: number) => `$${value.toLocaleString()}`}
                 />
                 <Legend 
                     verticalAlign="bottom" 
@@ -113,7 +113,7 @@ export function RevenueChart({ data }: { data: { name: string; total: number }[]
             <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `£${value}`} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
                 <Tooltip
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}

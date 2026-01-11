@@ -61,7 +61,7 @@ export default async function InvoicesPage() {
                                     <TableCell className="font-mono text-xs font-bold">{inv.invoiceNumber}</TableCell>
                                     <TableCell className="uppercase text-[10px] font-bold tracking-tight">{inv.customer.name}</TableCell>
                                     <TableCell className="text-xs text-muted-foreground uppercase">{inv.issuedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
-                                    <TableCell className="font-black">£{Number(inv.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="font-black">${Number(inv.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
                                     <TableCell>
                                         <Badge variant={inv.status === 'PAID' ? 'success' : inv.status === 'PENDING' ? 'warning' : 'destructive'} className="uppercase text-[8px] tracking-tighter font-bold">
                                             {inv.status}

@@ -112,7 +112,7 @@ export default async function ReportsPage() {
                         <TrendingUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black">£{stats.totalRevenue.toLocaleString()}</div>
+                        <div className="text-2xl font-black">${stats.totalRevenue.toLocaleString()}</div>
                         <p className="text-[9px] text-muted-foreground uppercase font-bold mt-1 flex items-center gap-1">
                             <ArrowUpRight className="w-3 h-3 text-green-500" />
                             Lifetime Collected
@@ -126,7 +126,7 @@ export default async function ReportsPage() {
                         <Wallet className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black">£{stats.totalExpenses.toLocaleString()}</div>
+                        <div className="text-2xl font-black">${stats.totalExpenses.toLocaleString()}</div>
                         <p className="text-[9px] text-muted-foreground uppercase font-bold mt-1 flex items-center gap-1">
                             <ArrowDownRight className="w-3 h-3 text-red-500" />
                             Material & Ops Cost
@@ -142,7 +142,7 @@ export default async function ReportsPage() {
                         <CardTitle className="text-[10px] font-black uppercase tracking-widest text-primary">Net Profit</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black text-white">£{stats.grossProfit.toLocaleString()}</div>
+                        <div className="text-2xl font-black text-white">${stats.grossProfit.toLocaleString()}</div>
                         <div className="mt-2 flex items-center gap-2">
                             <Badge variant="success" className="text-[8px] px-1.5 h-4 border-none bg-primary text-black font-black">
                                 {Math.round(stats.netMargin)}% MARGIN
@@ -157,7 +157,7 @@ export default async function ReportsPage() {
                         <DollarSign className="h-4 w-4 text-amber-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-black text-amber-600">£{stats.totalOutstanding.toLocaleString()}</div>
+                        <div className="text-2xl font-black text-amber-600">${stats.totalOutstanding.toLocaleString()}</div>
                         <p className="text-[9px] text-muted-foreground uppercase font-bold mt-1">Pending Invoices</p>
                     </CardContent>
                 </Card>
@@ -204,7 +204,7 @@ export default async function ReportsPage() {
                         <div className="w-[1px] bg-white/10" />
                         <div>
                             <p className="text-[8px] uppercase font-black text-slate-500 tracking-widest">Avg Quote Value</p>
-                            <p className="text-lg font-black">£{Math.round(stats.totalRevenue / (stats.invoiceCount || 1)).toLocaleString()}</p>
+                            <p className="text-lg font-black">${Math.round(stats.totalRevenue / (stats.invoiceCount || 1)).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>

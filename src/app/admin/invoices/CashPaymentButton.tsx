@@ -28,14 +28,14 @@ export function CashPaymentButton({ invoiceId, totalAmount, invoiceNumber, curre
         
         const choice = window.confirm(
             `Record Cash Payment for ${invoiceNumber}\n\n` +
-            `OK: Record 50% Deposit (£${deposit.toLocaleString()})\n` +
-            `Cancel: Record Full Payment (£${totalAmount.toLocaleString()})`
+            `OK: Record 50% Deposit ($${deposit.toLocaleString()})\n` +
+            `Cancel: Record Full Payment ($${totalAmount.toLocaleString()})`
         );
 
         const amount = choice ? deposit : totalAmount;
         const type = choice ? 'DEPOSIT' : 'FULL';
 
-        if (!window.confirm(`Confirm £${amount.toLocaleString()} Cash Payment?`)) return;
+        if (!window.confirm(`Confirm $${amount.toLocaleString()} Cash Payment?`)) return;
 
         setIsPending(true);
         try {

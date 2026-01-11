@@ -77,7 +77,7 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                 <Card className="bg-white border-dashed border-2">
                     <CardContent className="pt-6">
                         <p className="text-[8px] uppercase font-black text-muted-foreground tracking-[0.2em]">Total Revenue</p>
-                        <p className="text-2xl font-black mt-1 tracking-tighter uppercase">£{revenue.toLocaleString()}</p>
+                        <p className="text-2xl font-black mt-1 tracking-tighter uppercase">${revenue.toLocaleString()}</p>
                     </CardContent>
                 </Card>
 
@@ -86,7 +86,7 @@ export default async function JobSheetPage({ params }: { params: Promise<{ id: s
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-[8px] uppercase font-black text-muted-foreground tracking-[0.2em]">Actual Costs</p>
-                                <p className="text-2xl font-black mt-1 tracking-tighter uppercase">£{totalExpenses.toLocaleString()}</p>
+                                <p className="text-2xl font-black mt-1 tracking-tighter uppercase">${totalExpenses.toLocaleString()}</p>
                             </div>
                             <Wallet className="w-4 h-4 text-muted-foreground opacity-30" />
                         </div>

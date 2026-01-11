@@ -41,7 +41,7 @@ export async function sendQuoteEmail({ to, customerName, quoteId, amount, portal
                     
                     <div style="background-color: #f9fafb; padding: 25px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #ef9f46;">
                         <p style="margin: 0; font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Estimated Total</p>
-                        <h1 style="margin: 8px 0 0; font-size: 36px; color: #111827; font-weight: 900;">£${amount}</h1>
+                        <h1 style="margin: 8px 0 0; font-size: 36px; color: #111827; font-weight: 900;">$${amount}</h1>
                     </div>
                     
                     <div style="text-align: center; margin: 40px 0;">

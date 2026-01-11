@@ -96,7 +96,7 @@ export default async function PurchaseOrdersPage() {
                                         <TableCell className="uppercase text-[10px] font-bold tracking-tight">{po.supplier.name}</TableCell>
                                         <TableCell className="text-[10px] text-muted-foreground uppercase">{new Date(po.createdAt).toLocaleDateString()}</TableCell>
                                         <TableCell className="text-center font-bold text-xs">{po.items.length}</TableCell>
-                                        <TableCell className="font-black text-xs">£{Number(po.total).toLocaleString()}</TableCell>
+                                        <TableCell className="font-black text-xs">${Number(po.total).toLocaleString()}</TableCell>
                                         <TableCell>
                                             <Badge variant={po.status === 'RECEIVED' ? 'success' : 'outline'} className="uppercase text-[8px] tracking-tighter">
                                                 {po.status}

@@ -60,7 +60,7 @@ export default async function QuotesPage() {
                                     <TableCell className="font-mono text-[10px] font-black">{quote.id.slice(0, 8).toUpperCase()}</TableCell>
                                     <TableCell className="uppercase text-[10px] font-bold tracking-tight">{quote.customer.name}</TableCell>
                                     <TableCell className="text-[10px] text-muted-foreground font-medium uppercase">{quote.fencingService.name}</TableCell>
-                                    <TableCell className="font-black">£{Number(quote.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="font-black">${Number(quote.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
                                     <TableCell>
                                         <Badge variant={quote.status === 'APPROVED' ? 'success' : quote.status === 'SENT' ? 'warning' : 'outline'} className="uppercase text-[8px] tracking-tighter">
                                             {quote.status}

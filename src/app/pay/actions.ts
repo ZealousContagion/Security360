@@ -24,7 +24,7 @@ export async function createCheckoutSession(invoiceId: string) {
         line_items: [
             {
                 price_data: {
-                    currency: 'gbp',
+                    currency: 'usd',
                     product_data: {
                         name: `Deposit for ${invoice.quote?.fencingService.name || 'Fencing Project'}`,
                         description: `Project: ${invoice.quote?.lengthMeters.toString()}m Perimeter Fence. Invoice: ${invoice.invoiceNumber}`,

@@ -84,7 +84,7 @@ export default async function ExpensesPage() {
                     </div>
                     <div className="space-y-1">
                         <h3 className="font-bold uppercase text-sm tracking-tight">Monthly Spending</h3>
-                        <p className="text-3xl font-black tracking-tighter text-primary">£{totalSpending.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="text-3xl font-black tracking-tighter text-primary">${totalSpending.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
                     <Button variant="outline" className="text-[9px] uppercase tracking-widest px-4 h-8 font-bold">Download Report</Button>
                 </Card>
@@ -119,7 +119,7 @@ export default async function ExpensesPage() {
                                     </TableCell>
                                     <TableCell><span className="text-[10px] font-bold uppercase bg-accent px-2 py-0.5 rounded">{expense.category}</span></TableCell>
                                     <TableCell className="text-xs font-medium uppercase tracking-tight">{expense.description}</TableCell>
-                                    <TableCell className="text-right font-bold">£{Number(expense.amount).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-bold">${Number(expense.amount).toFixed(2)}</TableCell>
                                     {isAdmin && (
                                         <TableCell className="text-right">
                                             <DeleteExpenseButton id={expense.id} />

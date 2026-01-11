@@ -14,6 +14,8 @@ import {
     Package, 
     Calendar, 
     AlertTriangle,
+    PlusCircle,
+    ShoppingCart,
     FilePlus,
     Users,
     ArrowUpRight,
@@ -26,7 +28,7 @@ import {
 import { RevenueByServiceChart } from './RevenueByServiceChart';
 import { RevenueTrendChart } from './RevenueTrendChart';
 import { DateRangePicker } from './DateRangePicker';
-import { DashboardMap } from './DashboardMap';
+import { DashboardMapClient } from './DashboardMapClient';
 import { Decimal } from '@prisma/client/runtime/library';
 import Link from 'next/link';
 
@@ -69,6 +71,12 @@ async function getStats(range: DateRange) {
     });
     const pendingAmount = pendingInvoices.reduce((acc, curr) => acc.add(curr.total), new Decimal(0));
 
+    const activeJobsCount = await prisma.job.count({
+        where: {
+            status: { in: ['SCHEDULED', 'STARTED', 'ON_SITE'] }
+        }
+    });
+
     const expenseDateFilter = range === 'all' ? {} : { date: getDateFilter(range).createdAt };
     const expenses = await prisma.expense.findMany({
         where: expenseDateFilter,
@@ -84,7 +92,8 @@ async function getStats(range: DateRange) {
         pendingAmount: pendingAmount.toNumber(),
         totalExpenses: totalExpenses.toNumber(),
         netProfit: netProfit.toNumber(),
-        totalQuotes
+        totalQuotes,
+        activeJobsCount
     };
 }
 
@@ -235,8 +244,8 @@ async function ServiceProfitability({ data }: { data: any[] }) {
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-[8px] text-muted-foreground font-bold uppercase">
-                                    <span>Rev: £{service.revenue.toLocaleString()}</span>
-                                    <span>Exp: £{service.expense.toLocaleString()}</span>
+                                    <span>Rev: ${service.revenue.toLocaleString()}</span>
+                                    <span>Exp: ${service.expense.toLocaleString()}</span>
                                 </div>
                                 <div className="h-1.5 bg-accent rounded-full overflow-hidden">
                                     <div 
@@ -297,7 +306,7 @@ async function StatsGrid({ range }: { range: DateRange }) {
                     <DollarSign className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-black">£{stats.totalRevenue.toLocaleString()}</div>
+                    <div className="text-2xl font-black">${stats.totalRevenue.toLocaleString()}</div>
                     <div className="flex items-center gap-1 mt-1">
                         <TrendingUp className="w-2 h-2 text-green-500" />
                         <p className="text-[8px] text-green-600 uppercase tracking-widest font-bold">In selected period</p>
@@ -311,19 +320,19 @@ async function StatsGrid({ range }: { range: DateRange }) {
                 </CardHeader>
                 <CardContent>
                     <div className={`text-2xl font-black ${stats.netProfit < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        £{stats.netProfit.toLocaleString()}
+                        ${stats.netProfit.toLocaleString()}
                     </div>
-                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">After £{stats.totalExpenses.toLocaleString()} expenses</p>
+                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">After ${stats.totalExpenses.toLocaleString()} expenses</p>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Conv. Rate</CardTitle>
-                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Active Jobs</CardTitle>
+                    <Briefcase className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-black">{stats.conversionRate}%</div>
-                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">{stats.totalQuotes} total quotes</p>
+                    <div className="text-2xl font-black">{stats.activeJobsCount}</div>
+                    <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">In field / scheduled</p>
                 </CardContent>
             </Card>
             <Card>
@@ -332,7 +341,7 @@ async function StatsGrid({ range }: { range: DateRange }) {
                     <Clock className="h-4 w-4 text-orange-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-black">£{stats.pendingAmount.toLocaleString()}</div>
+                    <div className="text-2xl font-black">${stats.pendingAmount.toLocaleString()}</div>
                     <p className="text-[8px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">Unpaid invoices</p>
                 </CardContent>
             </Card>
@@ -388,13 +397,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                         </Suspense>
 
                         <Card className="h-[400px]">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Installation Density</CardTitle>
-                                <MapIcon className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent className="h-[340px]">
-                                <DashboardMap />
-                            </CardContent>
+                                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                                            <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Installation Density</CardTitle>
+                                                            <MapIcon className="h-4 w-4 text-muted-foreground" />
+                                                        </CardHeader>
+                                                        <CardContent className="h-[340px]">   
+                                                            <DashboardMapClient />
+                                                        </CardContent>
+                            
                         </Card>
                     </div>
 
@@ -464,7 +474,12 @@ async function InventoryAlerts() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Low Stock Alerts</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <div className="flex gap-2">
+                    <Link href="/admin/purchase-orders/new">
+                        <PlusCircle className="h-4 w-4 text-primary hover:scale-110 transition-transform" />
+                    </Link>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -477,8 +492,17 @@ async function InventoryAlerts() {
                                     <p className="text-[10px] font-black uppercase tracking-tight">{item.name}</p>
                                     <p className="text-[8px] text-muted-foreground font-bold uppercase">{item.category}</p>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-bold text-orange-600">{Number(item.stockLevel)} {item.unit}</p>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-bold text-orange-600">{Number(item.stockLevel)} {item.unit}</p>
+                                    </div>
+                                    <Link 
+                                        href={`/admin/purchase-orders/new?catalogItemId=${item.id}&quantity=${Math.ceil(Number(item.minStockLevel) * 2)}`}
+                                        className="p-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded transition-colors group"
+                                        title="Restock now"
+                                    >
+                                        <ShoppingCart className="w-3.5 h-3.5" />
+                                    </Link>
                                 </div>
                             </div>
                         ))
@@ -492,31 +516,39 @@ async function InventoryAlerts() {
 async function UpcomingJobs() {
     const jobs = await prisma.job.findMany({
         where: {
-            status: 'SCHEDULED',
-            scheduledDate: { gte: new Date() }
+            status: { in: ['SCHEDULED', 'STARTED', 'ON_SITE'] },
+            scheduledDate: { gte: new Date(new Date().setHours(0,0,0,0)) }
         },
         take: 5,
         orderBy: { scheduledDate: 'asc' },
         include: {
-            invoice: { include: { customer: true } }
+            invoice: { include: { customer: true } },
+            assignedTo: true
         }
     });
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Upcoming Jobs</CardTitle>
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest">Job Schedule</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     {jobs.length === 0 ? (
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold text-center py-4">No upcoming jobs</p>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold text-center py-4">No active jobs scheduled</p>
                     ) : (
                         jobs.map((job) => (
                             <div key={job.id} className="flex items-center justify-between border-b border-dashed border-black/5 pb-2 last:border-0 last:pb-0">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-tight">{job.invoice.customer.name}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-[10px] font-black uppercase tracking-tight">{job.invoice.customer.name}</p>
+                                        {job.assignedTo && (
+                                            <span className="text-[7px] bg-black text-white px-1 py-0.5 rounded font-black uppercase" title={`Assigned to ${job.assignedTo.name}`}>
+                                                {job.assignedTo.name.split(' ').map(n => n[0]).join('')}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Clock className="w-2.5 h-2.5" />
                                         <span className="text-[8px] uppercase font-bold">
@@ -524,7 +556,10 @@ async function UpcomingJobs() {
                                         </span>
                                     </div>
                                 </div>
-                                <Badge variant="outline" className="text-[7px] h-4 uppercase font-black tracking-widest border-black/5">
+                                <Badge 
+                                    variant={job.status === 'STARTED' || job.status === 'ON_SITE' ? 'success' : 'outline'} 
+                                    className="text-[7px] h-4 uppercase font-black tracking-widest border-black/5"
+                                >
                                     {job.status}
                                 </Badge>
                             </div>
@@ -561,7 +596,7 @@ async function RecentActivity() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-[10px] font-black tracking-tighter">£{Number(inv.total).toFixed(2)}</p>
+                                <p className="text-[10px] font-black tracking-tighter">${Number(inv.total).toFixed(2)}</p>
                             </div>
                         </div>
                     ))}

@@ -222,7 +222,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
                                     >
                                         <p className="text-[10px] font-black uppercase tracking-tight">{addon.name}</p>
                                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest mt-1 font-bold">
-                                            {addon.pricingType === 'PER_METER' ? `£${addon.price}/m` : `£${addon.price} flat`}
+                                            {addon.pricingType === 'PER_METER' ? `$${addon.price}/m` : `$${addon.price} flat`}
                                         </p>
                                     </button>
                                 ))}
