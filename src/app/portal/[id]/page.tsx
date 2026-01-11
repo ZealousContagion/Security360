@@ -46,6 +46,28 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
     const activeQuote = customer.Quotes.find(q => q.status === 'SENT');
     const otherQuotes = customer.Quotes.filter(q => q.id !== activeQuote?.id);
 
+    // Deeply serialize all data for Client Components to handle Decimal and Date objects safely
+    const serializedActiveQuote = activeQuote ? JSON.parse(JSON.stringify({
+        ...activeQuote,
+        lengthMeters: Number(activeQuote.lengthMeters),
+        heightMeters: Number(activeQuote.heightMeters),
+        subtotal: Number(activeQuote.subtotal),
+        vat: Number(activeQuote.vat),
+        total: Number(activeQuote.total),
+        fencingService: {
+            ...activeQuote.fencingService,
+            pricePerMeter: Number(activeQuote.fencingService.pricePerMeter),
+            installationFee: Number(activeQuote.fencingService.installationFee),
+        }
+    })) : null;
+
+    const serializedAddons = JSON.parse(JSON.stringify(availableAddons.map(a => ({
+        ...a,
+        price: Number(a.price)
+    }))));
+
+    const serializedTickets = JSON.parse(JSON.stringify(tickets));
+
     return (
         <div className="min-h-screen bg-accent/20 p-6 md:p-12">
             <div className="max-w-6xl mx-auto space-y-10">
@@ -71,15 +93,15 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
                     {/* Quotes History */}
                     <div className="lg:col-span-2 space-y-10">
                         {/* Active Quote Focus */}
-                        {activeQuote && (
+                        {serializedActiveQuote && (
                             <div className="space-y-4">
                                 <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
                                     <Settings2 className="w-5 h-5 text-primary" />
                                     Active Proposal
                                 </h3>
                                 <InteractiveQuoteCard 
-                                    quote={activeQuote as any} 
-                                    availableAddons={availableAddons as any} 
+                                    quote={serializedActiveQuote} 
+                                    availableAddons={serializedAddons} 
                                 />
                             </div>
                         )}
@@ -175,7 +197,7 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
                         <PortalSupportChat 
                             customerId={customer.id} 
                             activeQuoteId={activeQuote?.id || null}
-                            initialTickets={tickets}
+                            initialTickets={serializedTickets}
                         />
 
                         <div className="bg-black text-white p-6 rounded-lg space-y-4">
