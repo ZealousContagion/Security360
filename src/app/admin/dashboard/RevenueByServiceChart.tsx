@@ -1,11 +1,13 @@
 'use client';
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface RevenueByServiceChartProps {
     data: { name: string; value: number }[];
 }
+
+const COLORS = ['#FFB700', '#FF8C00', '#FFD700', '#DAA520', '#B8860B'];
 
 export function RevenueByServiceChart({ data }: RevenueByServiceChartProps) {
     return (
@@ -16,16 +18,16 @@ export function RevenueByServiceChart({ data }: RevenueByServiceChartProps) {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 'bold' }} 
+                    tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }} 
                     className="uppercase tracking-widest"
                 />
                 <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 'bold' }}
+                    tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }}
                 />
                 <Tooltip 
-                    cursor={{ fill: 'transparent' }}
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                     contentStyle={{ 
                         borderRadius: '0px', 
                         border: '1px solid #e2e8f0',
@@ -36,7 +38,11 @@ export function RevenueByServiceChart({ data }: RevenueByServiceChartProps) {
                         letterSpacing: '0.1em'
                     }}
                 />
-                <Bar dataKey="value" fill="#FFB700" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="value" radius={[2, 2, 0, 0]} barSize={40}>
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Bar>
             </BarChart>
         </ResponsiveContainer>
     );
