@@ -97,6 +97,15 @@ export async function createPortalSupportTicket(customerId: string, quoteId: str
             }
         });
 
+        // Create a system notification for the admin team
+        await prisma.notification.create({
+            data: {
+                type: 'INQUIRY',
+                title: 'New Customer Inquiry',
+                message: `${customer.name} sent a message: "${message.slice(0, 50)}${message.length > 50 ? '...' : ''}"`,
+            }
+        });
+
         await logAction({
             action: 'CUSTOMER_PORTAL_SUPPORT_TICKET_CREATED',
             entityType: 'SupportTicket',
@@ -167,7 +176,16 @@ export async function customerApproveQuote(quoteId: string, signatureData: strin
             }
         });
 
-        // 4. Log the activity
+        // 4. Create a system notification
+        await prisma.notification.create({
+            data: {
+                type: 'APPROVAL',
+                title: 'Quote Approved',
+                message: `${quote.customer.name} has approved Quote #${quoteId.slice(0, 8)} and signed the contract.`,
+            }
+        });
+
+        // 5. Log the activity
         await logAction({
             action: 'CUSTOMER_PORTAL_APPROVAL_AND_JOB_CREATED',
             entityType: 'FenceQuote',
