@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { ExpenseSchema } from "@/lib/validations";
 import { logAction } from "@/modules/audit/logger";
 import { getDbUser, checkRole } from "@/lib/rbac";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 
 export async function createExpense(formData: FormData) {
     await checkRole(["ADMIN", "MANAGER"]);

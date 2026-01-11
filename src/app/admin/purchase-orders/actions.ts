@@ -3,7 +3,7 @@
 import { prisma } from "@/core/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 import { PurchaseOrderSchema } from "@/lib/validations";
 import { logAction } from "@/modules/audit/logger";
 import { getDbUser } from "@/lib/rbac";

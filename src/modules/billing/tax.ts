@@ -1,5 +1,5 @@
 import { prisma } from "@/core/database";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 
 export const DEFAULT_TAX_RATE = 0.15;
 export const DEFAULT_TAX_NAME = "VAT";

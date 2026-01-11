@@ -1,5 +1,5 @@
 import { calculateFencePrice } from '../src/modules/billing/pricing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/client';
 const { Decimal } = Prisma;
 
 describe('Pricing Engine', () => {

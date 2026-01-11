@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -32,6 +33,7 @@ model Customer {
   createdAt DateTime     @default(now())
   Quotes    FenceQuote[]
   Invoices  Invoice[]
+  SupportTickets SupportTicket[]
 
   @@index([name])
 }
@@ -94,6 +96,7 @@ model FenceQuote {
   customer         Customer       @relation(fields: [customerId], references: [id])
   fencingService   FencingService @relation(fields: [fencingServiceId], references: [id])
   Invoice          Invoice?
+  SupportTickets   SupportTicket[]
 
   @@index([customerId])
   @@index([status])
@@ -311,9 +314,15 @@ model SupportTicket {
   priority    String   @default("LOW") // LOW, MEDIUM, HIGH, URGENT
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  quoteId     String?
+  quote       FenceQuote? @relation(fields: [quoteId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([status])
   @@index([userId])
+  @@index([customerId])
+  @@index([quoteId])
 }

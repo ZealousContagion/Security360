@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "@/generated/client/runtime/library";
 
 export async function getAvailableAddons() {
     return await prisma.fencingAddon.findMany({
@@ -79,6 +79,46 @@ export async function updateQuoteAddons(quoteId: string, addOnIds: string[]) {
         console.error("Adjustment Error:", err);
         return { success: false, error: err.message };
     }
+}
+
+export async function createPortalSupportTicket(customerId: string, quoteId: string | null, message: string) {
+    try {
+        const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+        if (!customer) throw new Error("Customer not found");
+
+        const ticket = await prisma.supportTicket.create({
+            data: {
+                customerId,
+                quoteId,
+                subject: quoteId ? `Inquiry about Quote #${quoteId.slice(0, 8)}` : `General Inquiry: ${customer.name}`,
+                message,
+                status: 'OPEN',
+                priority: 'LOW'
+            }
+        });
+
+        await logAction({
+            action: 'CUSTOMER_PORTAL_SUPPORT_TICKET_CREATED',
+            entityType: 'SupportTicket',
+            entityId: ticket.id,
+            performedBy: `Customer: ${customer.name}`,
+            metadata: { quoteId }
+        });
+
+        revalidatePath(`/portal/${customerId}`);
+        return { success: true };
+    } catch (err: any) {
+        console.error("Portal Ticket Error:", err);
+        return { success: false, error: err.message };
+    }
+}
+
+export async function getPortalTickets(customerId: string) {
+    return await prisma.supportTicket.findMany({
+        where: { customerId },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+    });
 }
 
 export async function customerApproveQuote(quoteId: string, signatureData: string) {

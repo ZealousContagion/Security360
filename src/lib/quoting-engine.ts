@@ -1,4 +1,4 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "@/generated/client/runtime/library";
 
 export interface MaterialEstimation {
     name: string;

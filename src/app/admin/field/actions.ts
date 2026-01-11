@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { logAction } from "@/modules/audit/logger";
 import { getDbUser } from "@/lib/rbac";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 
 export async function completeJob(jobId: string) {
     const user = await getDbUser();

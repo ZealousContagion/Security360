@@ -5,7 +5,7 @@ import { getSession } from '@/modules/auth/session';
 import { calculateFencePrice } from '@/modules/billing/pricing';
 import { getTaxSettings } from '@/modules/billing/tax';
 import { QuoteSchema } from '@/lib/validations';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/generated/client/runtime/library';
 import { logAction } from '@/modules/audit/logger';
 import { getDbUser, isManager } from '@/lib/rbac';
 

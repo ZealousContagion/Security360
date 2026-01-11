@@ -8,7 +8,8 @@ import { FileText, CheckCircle2, Clock, CreditCard, Download, ExternalLink, Sett
 import Link from 'next/link';
 import { ApproveQuoteButton } from '@/components/ApproveQuoteButton';
 import { InteractiveQuoteCard } from '@/components/InteractiveQuoteCard';
-import { getAvailableAddons } from '../actions';
+import { PortalSupportChat } from '@/components/PortalSupportChat';
+import { getAvailableAddons, getPortalTickets } from '../actions';
 
 export default async function CustomerPortalPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -37,7 +38,11 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
         );
     }
 
-    const availableAddons = await getAvailableAddons();
+    const [availableAddons, tickets] = await Promise.all([
+        getAvailableAddons(),
+        getPortalTickets(customer.id)
+    ]);
+
     const activeQuote = customer.Quotes.find(q => q.status === 'SENT');
     const otherQuotes = customer.Quotes.filter(q => q.id !== activeQuote?.id);
 
@@ -167,21 +172,11 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
 
                     {/* Sidebar / Quick Actions */}
                     <div className="space-y-8">
-                        <Card className="border-primary/20 bg-primary/[0.02]">
-                            <CardHeader>
-                                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-primary">Account Manager</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-black text-xs uppercase">S3</div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-tight text-black">Support Team</p>
-                                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Always here to help</p>
-                                    </div>
-                                </div>
-                                <Button variant="outline" className="w-full text-[9px] uppercase tracking-widest font-black h-10 border-black/10">Contact Support</Button>
-                            </CardContent>
-                        </Card>
+                        <PortalSupportChat 
+                            customerId={customer.id} 
+                            activeQuoteId={activeQuote?.id || null}
+                            initialTickets={tickets}
+                        />
 
                         <div className="bg-black text-white p-6 rounded-lg space-y-4">
                             <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">Secure Portal</h4>

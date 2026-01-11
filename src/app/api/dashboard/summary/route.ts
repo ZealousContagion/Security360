@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/database';
 import { isManager } from '@/lib/rbac';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/generated/client/runtime/library';
 
 export async function GET(req: NextRequest) {
     if (!await isManager()) {

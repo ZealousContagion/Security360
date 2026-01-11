@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkRole } from "@/lib/rbac";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 
 export async function updateBusinessConfig(formData: FormData) {
     await checkRole(["ADMIN"]);

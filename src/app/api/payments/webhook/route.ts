@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { logAction } from '@/modules/audit/logger';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/client';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';

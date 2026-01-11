@@ -3,7 +3,7 @@ import { prisma } from '@/core/database';
 import { getDbUser } from '@/lib/rbac';
 import { calculateFencePrice } from '@/modules/billing/pricing';
 import { logAction } from '@/modules/audit/logger';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/generated/client/runtime/library';
 
 import { getTaxSettings } from '@/modules/billing/tax';
 import { QuoteSchema } from '@/lib/validations';

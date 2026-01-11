@@ -29,7 +29,7 @@ import { RevenueByServiceChart } from './RevenueByServiceChart';
 import { RevenueTrendChart } from './RevenueTrendChart';
 import { DateRangePicker } from './DateRangePicker';
 import { DashboardMapClient } from './DashboardMapClient';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/generated/client/runtime/library';
 import Link from 'next/link';
 
 // --- Types ---

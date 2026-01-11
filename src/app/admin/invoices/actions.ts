@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAction } from "@/modules/audit/logger";
 import { isManager, getDbUser } from "@/lib/rbac";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/client";
 
 export async function sendOverdueReminders() {
     if (!await isManager()) throw new Error("Unauthorized");

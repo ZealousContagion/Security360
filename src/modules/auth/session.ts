@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/client';
 
 const secretKey = process.env.JWT_SECRET || 'secret';
 const key = new TextEncoder().encode(secretKey);
