@@ -1,9 +1,30 @@
-import { PrismaClient, Prisma } from '@/generated/client'
-import * as bcrypt from 'bcryptjs'
+const { PrismaClient } = require('../src/generated/client')
+const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
 async function main() {
+    // Clear existing data
+    await prisma.notification.deleteMany({})
+    await prisma.auditLog.deleteMany({})
+    await prisma.purchaseOrderItem.deleteMany({})
+    await prisma.purchaseOrder.deleteMany({})
+    await prisma.jobPhoto.deleteMany({})
+    await prisma.expense.deleteMany({})
+    await prisma.job.deleteMany({})
+    await prisma.payment.deleteMany({})
+    await prisma.invoice.deleteMany({})
+    await prisma.fenceQuote.deleteMany({})
+    await prisma.billOfMaterials.deleteMany({})
+    await prisma.catalogItem.deleteMany({})
+    await prisma.teamMember.deleteMany({})
+    await prisma.supplier.deleteMany({})
+    await prisma.customer.deleteMany({})
+    await prisma.fencingAddon.deleteMany({})
+    await prisma.fencingService.deleteMany({})
+    await prisma.supportTicket.deleteMany({})
+    // We don't delete users to avoid locking ourselves out if we use this for resets
+    
     // 1. Users
     const passwordHash = await bcrypt.hash('password123', 10)
 
@@ -91,7 +112,7 @@ async function main() {
         { name: "Site Survey", category: "Service", price: 75.00, unit: "hour", description: "On-site assessment" },
         { name: "Cement (50kg)", category: "Materials", price: 14.00, unit: "bag", description: "Standard Portland Cement" },
     ]
-    const createdCatalog: any = {}
+    const createdCatalog = {}
     for (const c of catalogData) {
         const item = await prisma.catalogItem.create({ data: c })
         createdCatalog[c.name] = item
@@ -160,9 +181,9 @@ async function main() {
                 heightMeters: 1.8,
                 terrain: 'FLAT',
                 addOnIds: [],
-                subtotal: 750 + 100, // example
-                vat: (850) * 0.15,
-                total: 850 * 1.15,
+                subtotal: 850, // example
+                vat: 127.5,
+                total: 977.5,
                 status: 'DRAFT'
             }
         })

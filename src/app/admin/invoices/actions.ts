@@ -1,118 +1,89 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { logAction } from "@/modules/audit/logger";
-import { isManager, getDbUser } from "@/lib/rbac";
+import { sendPaymentReminder } from "@/lib/messaging";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/generated/client";
+import { logAction } from "@/modules/audit/logger";
+import { getDbUser } from "@/lib/rbac";
 
-export async function sendOverdueReminders() {
-    if (!await isManager()) throw new Error("Unauthorized");
+export async function sendBulkOverdueReminders() {
     const user = await getDbUser();
+    
+    // Find all pending invoices older than 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    try {
-        const overdue = await prisma.invoice.findMany({
-            where: {
-                status: 'PENDING',
-                issuedAt: {
-                    lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-                }
-            },
-            include: { customer: true }
-        });
-
-        for (const inv of overdue) {
-            console.log(`Sending reminder for INV ${inv.invoiceNumber} to ${inv.customer.name}`);
+    const overdueInvoices = await prisma.invoice.findMany({
+        where: {
+            status: 'PENDING',
+            issuedAt: { lte: sevenDaysAgo }
         }
+    });
 
-        await logAction({
-            action: 'BULK_OVERDUE_REMINDERS',
-            entityType: 'Invoice',
-            performedBy: user?.email || 'Admin',
-            metadata: { count: overdue.length }
-        });
-
-        return { success: true, count: overdue.length };
-    } catch (err: any) {
-        return { success: false, error: err.message };
+    let count = 0;
+    for (const inv of overdueInvoices) {
+        const res = await sendPaymentReminder(inv.id);
+        if (res.success) count++;
     }
+
+    if (count > 0) {
+        await logAction({
+            action: 'BULK_REMINDERS_SENT',
+            entityType: 'Invoice',
+            performedBy: user?.email || 'System',
+            metadata: { count }
+        });
+    }
+
+    revalidatePath("/admin/invoices");
+    revalidatePath("/admin/dashboard");
+
+    return { success: true, count };
 }
 
-export async function recordCashPayment(invoiceId: string, amount: number, isDeposit: boolean = true) {
-    if (!await isManager()) throw new Error("Unauthorized");
+export async function recordCashPayment(invoiceId: string, amount: number, isDeposit: boolean = false) {
     const user = await getDbUser();
 
     try {
         const invoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
-            include: { Payments: true }
+            include: { customer: true }
         });
 
         if (!invoice) throw new Error("Invoice not found");
 
-        // 1. Create the Payment Record
+        // 1. Create Payment Record
         await prisma.payment.create({
             data: {
                 invoiceId,
-                amount: new Prisma.Decimal(amount),
+                amount: amount,
                 method: 'CASH',
-                status: 'SUCCESS',
-                reference: `CASH-${Date.now()}`
+                status: 'COMPLETED',
+                reference: `CASH-${isDeposit ? 'DEP' : 'FULL'}-${new Date().getTime()}`
             }
         });
 
-        // 2. Recalculate total paid
-        const updatedInvoice = await prisma.invoice.findUnique({
-            where: { id: invoiceId },
-            include: { Payments: true }
-        });
-
-        const totalPaid = updatedInvoice!.Payments
-            .filter(p => p.status === 'SUCCESS')
-            .reduce((acc, p) => acc.plus(p.amount), new Prisma.Decimal(0));
-
-        // 3. Update Invoice Status
-        const newStatus = totalPaid.greaterThanOrEqualTo(invoice.total) ? 'PAID' : 'PARTIAL';
+        // 2. Update Invoice Status
         await prisma.invoice.update({
             where: { id: invoiceId },
-            data: { status: newStatus }
+            data: { status: isDeposit ? 'PARTIAL' : 'PAID' }
         });
 
-        // 4. Create Job if it's a deposit and job doesn't exist
-        if (isDeposit || newStatus === 'PAID' || newStatus === 'PARTIAL') {
-            const existingJob = await prisma.job.findUnique({ where: { invoiceId } });
-            if (!existingJob) {
-                const tech = await prisma.teamMember.findFirst({
-                    where: { role: { contains: 'Technician' }, status: 'ACTIVE' }
-                });
-
-                await prisma.job.create({
-                    data: {
-                        invoiceId,
-                        teamMemberId: tech?.id,
-                        status: 'SCHEDULED',
-                        notes: 'Automatically scheduled from manual cash payment.'
-                    }
-                });
-            }
-        }
-
+        // 3. Log Action
         await logAction({
             action: 'CASH_PAYMENT_RECORDED',
             entityType: 'Invoice',
             entityId: invoiceId,
             performedBy: user?.email || 'Admin',
-            metadata: { amount, isDeposit, status: newStatus }
+            metadata: { amount, invoiceNumber: invoice.invoiceNumber, type: isDeposit ? 'DEPOSIT' : 'FULL' }
         });
 
         revalidatePath("/admin/invoices");
         revalidatePath("/admin/dashboard");
-        revalidatePath("/admin/field");
-        revalidatePath("/admin/schedule");
 
         return { success: true };
-    } catch (err: any) {
-        console.error("Cash Payment Error:", err);
-        return { success: false, error: err.message };
+    } catch (error: any) {
+        console.error("Cash Payment Error:", error);
+        return { success: false, error: error.message };
     }
 }

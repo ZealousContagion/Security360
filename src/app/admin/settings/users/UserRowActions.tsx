@@ -1,30 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { updateUserRole, toggleUserStatus } from './actions';
+import { toggleUserStatus } from './actions';
 import { Role } from '@/lib/rbac';
-import { Loader2, Power, ShieldCheck } from 'lucide-react';
+import { Loader2, Power } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { EditUserModal } from './EditUserModal';
 
 interface UserRowActionsProps {
     userId: string;
+    userName: string;
+    userEmail: string;
     currentRole: Role;
     isActive: boolean;
 }
 
-export function UserRowActions({ userId, currentRole, isActive }: UserRowActionsProps) {
+export function UserRowActions({ userId, userName, userEmail, currentRole, isActive }: UserRowActionsProps) {
     const [loading, setLoading] = useState(false);
-
-    const handleRoleChange = async (newRole: Role) => {
-        if (newRole === currentRole) return;
-        setLoading(true);
-        try {
-            const res = await updateUserRole(userId, newRole);
-            if (!res.success) alert(res.error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleToggleStatus = async () => {
         if (!confirm(`Are you sure you want to ${isActive ? 'disable' : 'enable'} this user?`)) return;
@@ -38,17 +30,8 @@ export function UserRowActions({ userId, currentRole, isActive }: UserRowActions
     };
 
     return (
-        <div className="flex items-center justify-end gap-3">
-            <select 
-                disabled={loading}
-                value={currentRole}
-                onChange={(e) => handleRoleChange(e.target.value as Role)}
-                className="text-[10px] font-bold uppercase bg-accent/50 border-none rounded px-2 py-1 outline-none focus:ring-1 ring-primary"
-            >
-                <option value="USER">User</option>
-                <option value="MANAGER">Manager</option>
-                <option value="ADMIN">Admin</option>
-            </select>
+        <div className="flex items-center justify-end gap-2">
+            <EditUserModal user={{ id: userId, name: userName, email: userEmail, role: currentRole }} />
 
             <Button 
                 variant="ghost" 

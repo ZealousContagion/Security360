@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { ApproveQuoteButton } from '@/components/ApproveQuoteButton';
 import { InteractiveQuoteCard } from '@/components/InteractiveQuoteCard';
 import { PortalSupportChat } from '@/components/PortalSupportChat';
+import { PDFDownloadButton } from '@/components/PDFDownloadButton';
 import { getAvailableAddons, getPortalTickets } from '../actions';
 
 export default async function CustomerPortalPage({ params }: { params: Promise<{ id: string }> }) {
@@ -134,7 +135,10 @@ export default async function CustomerPortalPage({ params }: { params: Promise<{
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="ghost" size="sm" className="text-[9px] uppercase tracking-widest font-black h-7 px-3">View PDF</Button>
+                                                    <PDFDownloadButton 
+                                                        quote={JSON.parse(JSON.stringify(quote))} 
+                                                        customer={JSON.parse(JSON.stringify(customer))} 
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         ))}

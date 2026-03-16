@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { UserCog, ShieldCheck, Mail, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { UserRowActions } from './UserRowActions';
+import { AddUserModal } from './AddUserModal';
 import { Role } from '@/lib/rbac';
 
 export default async function UsersManagementPage() {
@@ -14,9 +15,12 @@ export default async function UsersManagementPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-black tracking-tighter uppercase">User Access</h1>
-                <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Manage system roles and dashboard permissions</p>
+            <div className="flex items-start justify-between">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tighter uppercase">User Access</h1>
+                    <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold mt-1">Manage system roles and dashboard permissions</p>
+                </div>
+                <AddUserModal />
             </div>
 
             <Card>
@@ -52,6 +56,8 @@ export default async function UsersManagementPage() {
                                     <TableCell>
                                         <UserRowActions 
                                             userId={user.id} 
+                                            userName={user.name}
+                                            userEmail={user.email}
                                             currentRole={user.role as Role} 
                                             isActive={user.isActive} 
                                         />

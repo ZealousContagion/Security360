@@ -10,9 +10,10 @@
     "test": "jest --config jest.config.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:seed": "ts-node --compiler-options {\"module\":\"commonjs\"} prisma/seed.ts"
+    "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
+    "@clerk/backend": "^2.29.5",
     "@clerk/nextjs": "^6.36.7",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@hello-pangea/dnd": "^18.0.1",
@@ -60,6 +61,6 @@
     "typescript": "^5.3.3"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"commonjs\"} prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   }
 }
